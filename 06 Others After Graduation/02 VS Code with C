@@ -1,0 +1,99 @@
+mingw超详细教程
+http://rsreland.net/archives/1760
+
+[VSCode]Windows下VSCode编译调试c/c++
+https://blog.csdn.net/c_duoduo/article/details/51615381
+新的launch.json  新的tasks.json 【一定要使用这两个】
+
+vs code调试提示找不到 preLaunchTask 'build'
+https://bbs.csdn.net/topics/392343080?page=1
+
+VSCode下便捷编译运行C++代码——Code Runner配置及说明
+https://blog.csdn.net/qq_31359295/article/details/75113078?locationNum=2&fps=1
+
+最终vs code 
+中的用户设置
+{
+    "update.channel": "none",
+    "git.ignoreMissingGitWarning": true,
+    //"files.encoding": "gb2312",
+    "code-runner.runInTerminal": true,
+    "code-runner.ignoreSelection": true,
+    "code-runner.executorMap": {      
+            "c":  " make $fileName && ./$fileNameWithoutExt.exe",  
+            "cpp": " make $fileName && ./$fileNameWithoutExt.exe",
+        },
+}
+
+中的工作区设置
+{
+    "files.autoGuessEncoding": true,
+
+    //"files.encoding": "GBK",
+    //"files.encoding": "utf8",
+    "files.encoding": "gb2312",
+    "files.associations": {
+        "stdio.h": "c"
+    },
+}
+
+
+
+launch.json
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "(gdb) Launch",
+            "preLaunchTask": "build",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${fileDirname}/${fileBasenameNoExtension}.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": true,
+            "MIMode": "gdb",
+            "miDebuggerPath": "D:\\Program Files\\mingw-w64\\mingw64\\bin\\gdb.exe", // GDB的路径，注意替换成自己的路径
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        }]
+}
+
+
+tasks.json
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "windows": {
+                "command": "g++",
+                "args": [
+                    "-ggdb",
+                    "\"${file}\"",
+                    "--std=c++11",
+                    "-o",
+                    "\"${fileDirname}\\${fileBasenameNoExtension}.exe\""
+                ]
+            }
+        }
+    ]
+}

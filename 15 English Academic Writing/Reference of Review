@@ -1,0 +1,21 @@
+references:
+1)	Dryad: distributed data-parallel programs from sequential building blocks
+https://dl.acm.org/citation.cfm?id=1273005
+2)	MapReduce and parallel DBMSs: friends or foes?
+https://dl.acm.org/citation.cfm?id=1629197
+3)	Parallel data processing with MapReduce: a survey
+https://dl.acm.org/citation.cfm?id=2094118
+4)	Dremel: interactive analysis of web-scale datasets
+https://dl.acm.org/citation.cfm?id=1920886
+5)	Spark: Cluster Computing with Working Sets
+http://static.usenix.org/legacy/events/hotcloud10/tech/full_papers/Zaharia.pdf
+6)	TensorFlow: A System for Large-Scale Machine Learning
+https://www.usenix.org/system/files/conference/osdi16/osdi16-abadi.pdf
+7)	GraphLab: A New Framework For Parallel Machine Learning
+https://arxiv.org/abs/1408.2041
+8)	HadoopDB: an architectural hybrid of MapReduce and DBMS technologies for analytical workloads
+https://dl.acm.org/citation.cfm?id=1687731
+9)	Hive: a warehousing solution over a map-reduce framework
+https://dl.acm.org/citation.cfm?id=1687609
+10)	Pig latin: a not-so-foreign language for data processing
+https://dl.acm.org/citation.cfm?id=1376726

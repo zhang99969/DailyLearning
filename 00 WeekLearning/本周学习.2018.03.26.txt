@@ -1,0 +1,29 @@
+1.本周完成的工作/学习
+    a)完成的学习任务/工作任务
+        (1)、使用tushare库，获取了基本的财经信息。
+        (2)、在anaconda prompt下安装了redis、requests等包，使用spyder。
+        (3)、中文处理类库sonwNLP，调用情绪判断。
+    b)所学知识
+        (1)、python3.6的基础语法知识。
+        (2)、爬虫框架scrapy，正在学习http://t.cn/RnWsuYg、http://t.cn/RLMgMlg
+        (3)、redis安装使用：http://t.cn/RnWsuY1、http://t.cn/RnWsuTP
+        (4)、2.x版本的代码改成3.x的代码，参照了http://t.cn/RnWsuY3、http://t.cn/RnWsuTv、http://t.cn/RnWsuYs等。
+        (5)、'unicodeescape' codec can't decode...转码问题（目录被认为是八进制）：http://t.cn/RnWsuYe、http://t.cn/RnWsuYB
+        (6)、HTTP status code is not handled or not allowed：http://t.cn/RnWsuYr、http://t.cn/RnWsuYk
+    c)所读书籍/论文
+        (1)王丙坤,黄永峰,李星.基于多粒度计算和多准则融合的情感分类[J].清华大学学报(自然科学版),2015,55(05):497-502.
+        (2)fork以下项目
+            https://github.com/SpiderClub/weibospider
+            https://github.com/xiaobeibei26/weibo_spider
+            https://github.com/xiaobeibei26/xueiqiu_spider
+            https://github.com/meibenjin/weibo_crawler
+2.下周计划
+    弄明白爬虫框架、得到财经网站的股评、力争实现爬取微博关键字。
+3.待解决的重要问题（或疑难问题）
+    a)微博爬取关键字报错 DEBUG: Redirecting (302) to <GET ... 参照http://t.cn/RnWsuYF
+    b)微博登陆后才能爬取，登陆失败、cookies不能得到。
+    c)no module named XX问题，from xx import xxx时出现，参照http://t.cn/RnlPaWv、http://t.cn/RnWsuYB、http://t.cn/RnlPaWP，学习完scrapy后接着尝试。
+ 
+
+
+

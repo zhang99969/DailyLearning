@@ -1,0 +1,24 @@
+1.本周完成的学习/工作
+    a)完成的学习任务/工作任务
+        (1)、安装了 MongoDB，GUI 工具使用了 NoSQL Manager for MongoDB Professional。
+        (2)、学习并爬取了东方财富网股吧的股票评论帖子以及回复，使用 BeautifulSoup ，参照了 http://t.cn/RnsKebe。
+        (3)、学习并爬取了雪球网所有沪深股票和讨论，解析 json 数据，参照了 http://t.cn/RnsKe2K、http://t.cn/RnsKe29。
+        (4)、安装 Pycharm 尝试解决“no module named XX”，并引用 anaconda：http://t.cn/RnsKe2S，然而并不关IDE的事情，最终修改 import 部分格式并学习代码后解决。
+        (5)、填写《了高等学校毕业生登记表》，继续填写《本科毕设指导记要》。
+    b)所学知识
+        (1)、python 语法，格式转换 http://t.cn/RHTbeVi 等。
+        (2)、BeautifulSoup中 find_all() 和 find() ，http://t.cn/RnsKe2N。 
+        (3)、MongoDB的使用：http://t.cn/RJZCa9Z、 http://t.cn/RnsKe2O、启动方法：http://t.cn/RnsKe2o 。
+        (4)、接上周爬虫框架的学习，http://t.cn/RLMgMlg 。
+        (5)、Spyder 下的调试过程。
+        (6)、听学校一场创新讲座，区块链技术与应用，结合网站知识对此有了大概的了解。
+    c)所读书籍/论文
+        (1)毕设导师提供了一篇关于炒作微博的特征分析与识别研究的硕士论文，用作爬取微博关键字的参考。
+        (2)fork https://github.com/zach0zhang/Python_Spider 中的 Spider_for_Stock.py ，测试用。
+2.下一布计划
+    将爬取到的数据进行整理，统一格式，从而方便进行情感极性分类。
+3.待解决的重要问题（或疑难问题）
+    (1)、目前访问雪球网评论的第三页后会提示“您的请求过于频繁，请稍后再试”。
+    (2)、不明情况下雪球网提示“遇到错误，请刷新页面或者重新登录帐号后再试”，参照 http://t.cn/RKGHkj0 得知需要获取Cookie，目前没有再遇到。
+
+    另外，关于体检问题在 http://t.cn/RpTKoAm 看到可在本科学校体检，在5月10日前邮寄，没有找到新的消息。去校医院询问得知校医院不提供体检表，需要自己准备。如果没有新的通知这几天会我使用“四川省研究生招生考生体格检查表”(http://t.cn/Rns9q3c)去校医院体检并邮寄。

@@ -1,0 +1,4 @@
+SugarDecorator sugar( new IceDecorator( new Coffee()));
+SugarDecorator sugar( new SugauDecorator( new IceDecorator( new Coffee())));
+
+aSugar->bSugar->aIce->aCoffee
