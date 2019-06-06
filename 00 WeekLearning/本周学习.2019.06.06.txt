@@ -1,0 +1,34 @@
+5.26-6.1
+老师好。这是我本学期第15周6月2日至6月6日的总结：
+1.所学知识
+    (1)、中课完成一部分关于五四运动100周年的期末论文内容，填写积极分子考察表，参加党支部工作条例答题活动和大会。
+    (2)、软件测试课程。使Nginx服务静态文件，切换到使用Unix Sockets并关掉DEBUG模式，使用Systemd的systemctl命令来确保Gunicorn在Boot时启动，并在崩溃时自动重新加载，手动部署完成。使用Fabric进行自动部署并进行测试，
+    (3)、测吧项目。学习编写JUnit5Runtime.scala、ScalatestRuntime.scala中的genTestCase方法，和AllureTemplate.java中pageName参数的传递。了解插件类Plugin的init、start、getCrawler和setCrawler方法以及一个限制遍历次数的简单例子。了解通过预测获取返回键的算法细节。以上详细见附件。
+2.遇到的问题及解决
+    (1)、重启Nginx后并重新启动Gunicorn后没有启动成功，使用ps -aux | grep python来kill掉相关进程。
+    (2)、服务器提示Invalid HTTP_HOST header错误，修改settings.py内一行为ALLOWED_HOSTS = ['*']。
+    (3)、自动部署时提示Fatal error: run() received nonzero return code 128 while executing和fabric out: fatal: Could not parse object等错误，要注意到部署时提供的用户名、阿里云上和github上以及本地运行的代码保持同步，并修改相应配置文件来解决。
+2.下周计划
+    (1)、完成中课期末论文，准备完成软件测试课程的期末论文。
+    (2)、软件测试课程笔记总结与整理。
+
+
+
+
+
+
+
+5.26-6.1
+老师好。这是我本学期第14周5月26日至6月1日的总结：
+1.所学知识
+    (1)、中课老师回顾了改革开放40年的光辉历程，总结了宝贵经验。公布了期末论文要求。
+    (2)、软件测试课程。整理资料和笔记，手动将代码部署到服务器中，上传本地代码并由服务器拉取。创建用户和Virtualenv并使用，使用requirements来下载软件包。配置Nginx Web服务器与Django通信，并成功启动站点。尝试换成Gunicorn来运行代码。
+    (3)、测吧项目。实现同时生成ScalaTest报告和Allure报告，学习了两种方法的genTestCase和runTestCase算法。学习AllureTemplate方法，借助Junit5的动态测试技术获取activity下所有的元素。
+    (4)、简单了解jar包的执行顺序，包括使用java agent后premain的调用及MANIFEST中的参数。简单了解AppCrawler中插件类Plugin的开发和所包含的函数。
+    (5)、学习每个人提交代码的方法。主要包括Update Project、Merge into Current、Smart Merge和代码和修改与合并等。部分笔记见附件。
+    (6)、在使用selenium时，driver.execute_script("arguments[0].click();",driver.find_element_by_xpath(path)遇到了没有点击的问题，换回原来的。
+2.下周计划
+    (1)、准备完成中课期末论文，题目为关于坚持和发展中国特色社会主义或者五四运动100周年的3000字思想体会。
+    (2)、软件测试课程尝试实现将测试流程自动化。
+
+
