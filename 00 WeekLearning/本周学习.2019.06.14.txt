@@ -1,0 +1,31 @@
+6.10-6.15
+老师好。这是我本学期第16周6月10日至6月15日的总结：
+1.所学知识
+    (1)、中课结合自己的实际经历，完成了关于五四运动100周年思想体会的期末论文内容。参加了学校举办的“国企领导上讲台”报告会。
+    (2)、详细了解Appium原理与架构及不同版本，完成了软件测试技术课程的一份关于Appium的app的测试与实现的文章作为期末论文。
+    (2)、软件测试课程。整理总结所有课堂笔记与照片等。部署服务器中不同用户名下的服务器，同时使用 自动部署方法并完成服务器的启动，最终做到服务器不同用户名下页面的切换。
+    (3)、测吧项目。了解符合RESTful规范的架构，因为Appium的核心就是用到了REST API的Web服务器。学习了提供简单易容器使用接口的属于Linux容器封装的Docker基本知识。
+    (4)、测吧项目。学习了VisualVM，是Java自带的监控工具，可看到本地java的进程，进行性能调优与分析性能，例如在Appcrawler遍历过程中找到进程后看到内部线程、实例数最多和占用最大的相关类名并据此优化代码。
+    (5)、简单学习小程序前端内容，尝试完成一般页面与控件的单纯布局。
+2.下周计划
+    (1)、提交中课期末论文。提交软件测试课程的期末论文。
+
+
+
+
+
+
+
+老师好。这是我本学期第15周6月2日至6月6日的总结：
+1.所学知识
+    (1)、中课完成一部分关于五四运动100周年的期末论文内容，填写积极分子考察表，参加党支部工作条例答题活动和大会。
+    (2)、软件测试课程。使Nginx服务静态文件，切换到使用Unix Sockets并关掉DEBUG模式，使用Systemd的systemctl命令来确保Gunicorn在Boot时启动，并在崩溃时自动重新加载，手动部署完成。使用Fabric进行自动部署并进行测试，
+    (3)、测吧项目。学习编写JUnit5Runtime.scala、ScalatestRuntime.scala中的genTestCase方法，和AllureTemplate.java中pageName参数的传递。了解插件类Plugin的init、start、getCrawler和setCrawler方法以及一个限制遍历次数的简单例子。了解通过预测获取返回键的算法细节。以上详细见附件。
+2.遇到的问题及解决
+    (1)、重启Nginx后并重新启动Gunicorn后没有启动成功，使用ps -aux | grep python来kill掉相关进程。
+    (2)、服务器提示Invalid HTTP_HOST header错误，修改settings.py内一行为ALLOWED_HOSTS = ['*']。
+    (3)、自动部署时提示Fatal error: run() received nonzero return code 128 while executing和fabric out: fatal: Could not parse object等错误，要注意到部署时提供的用户名、阿里云上和github上以及本地运行的代码保持同步，并修改相应配置文件来解决。
+2.下周计划
+    (1)、完成中课期末论文，准备完成软件测试课程的期末论文。
+    (2)、软件测试课程笔记总结与整理。
+
