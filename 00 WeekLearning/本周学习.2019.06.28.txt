@@ -1,0 +1,39 @@
+6.23-6.28
+老师好。这是我6月23日至6月28日的总结：
+1.所学知识
+    (1)、新版Intellij IDEA连接gitlab，通过plugin连接远程仓库并同步。遇到包括通过管理Windows凭据纠正gitlab密码输入错误等问题。
+    (2)、通过Run Maven Build生成Appcrawler2.6.0包，通过生成与手动选择pom.xml文件解决没有maven projects问题；修改代码错误解决编译时maven:scala-maven-plugin错误。
+    (3)、运行Appcrawler 2.6.0对雪球app和中关村app进行测试，会有某些页面getPagesource失败和预测错误导致页面死循环等问题。
+    (4)、和思寒梳理了AppCrawler.scala和Crawler.scala代码逻辑与流程，整理部分笔记。
+    (5)、整理获取APK的appPackage和appActivity的方法；整理和复习Linux基础指令和grep awk sed指令的用法。以上部分见附件。
+2.下周计划
+    (1)、解决IDEA中push不成功只能使用force push、Crawler.scala代码用import包失败问题。
+    (2)、继续整理Crawler.scala等代码流程。Bootstrap的使用。
+
+
+		
+
+LINUX指令。
+
+Javassist自动生成测试用例：以控件为节点，按遍历顺序生成业务有向图，使用每个节点最短路径生成相应测试用例代码。
+
+适用于自定义矩阵的Dijkstra、Bellman_ford、Floyd_warshall图最短路算法。
+
+Allure框架使用：检测系统变量中是否有Allure环境，如有则以Web报告形式显示测试内容，并查看测试用例结果的具体缺陷，脱离Maven生成Allure报告。
+
+web页面的简单设计与交互，Bootstrap样式与模板。
+
+Appcrawler 2.6.0的功能文档：crawlerConf的文档说明、整体的使用说明、作用、Quick start、深入功能点、报告。
+
+
+6.16-6.21
+老师好。这是我本学期第17周6月16日至6月21日的总结：
+1.所学知识
+    (1)、中课和软件测试课程期末论文作业提交。微党课竞赛活动。参加漆涛老师组织的的吃饭见面活动。
+    (2)、尝试使用Allure框架，其是一个灵活轻量级的测试报告工具，以Web报告形式显示测试内容，并查看测试用例结果的具体缺陷。了解系统变量中是否有Allure环境的检测方法。
+    (3)、Javassist自动生成测试用例：以控件为节点，按遍历顺序生成业务有向图，使用每个节点最短路径生成相应测试用例代码。学习适用于自定义矩阵的Dijkstra、Bellman_ford和Floyd_warshall图最短路算法。
+    (4)、学习领域驱动设计。由于传统MVC开发和CRUD的关注点、业务与逻辑关系等问题，为降低系统业务复杂性并有更好扩展性引入了DDD即驱动领域设计。相比较于微服务架构，都是围绕业务能力构建同时又能解决微服务拆分和复杂系统的问题。最后了解了驱动领域设计的一般过程。
+2.下周计划
+    (1)、完成Appcrawler的2.6.0的版本。包括Allure框架使用：如有环境则以Web报告形式显示测试内容，并查看测试用例结果的具体缺陷，脱离Maven生成Allure报告。
+    (2)、web页面的简单设计与交互，Bootstrap样式与模板。
+    (3)、功能文档：crawlerConf的文档说明、整体的使用说明、作用、Quick start、深入功能点、报告等。
