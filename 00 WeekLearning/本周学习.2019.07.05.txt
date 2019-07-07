@@ -1,0 +1,27 @@
+6.30-7.5
+老师好。这是我6月30日至7月5日的总结：
+1.所学知识
+    (1)、学习整理并总结了AppCrawler 2.6.0核心代码的功能，包括AppCrawler类下的main方法、解析参数的具体流程，Crawler类下的start方法、爬取给定深度的crawlWithRetry方法、设置Appium模式的setupAppium方法，重点学习了递归爬取界面内所有元素的crawl方法以及函数之间的调用，包括寻找元素的getAvailableElement方法等。
+    (2)、通过对AppCrawler 2.6.0的学习，寻找到了一些还未实现的包括基于PO的自动功能、参数为null出现空指针异常的错误、可以进行重构的Util类、没有具体实现或运行到的代码等，今后可以针对这些内容进行有针对性的优化与改进。
+    (3)、简单学习Bootstrap前端框架的使用，同时了解了HTML、CSS和JavaScript的基础知识。了解qt。
+    (4)、了解并试用了百度AI平台EasyDL下的图片分类，对本地自制数据集进行分类并取得了好效果。尝试使用了Tensorflow构建卷积网络CNN并训练该数据集从而实现图像分类。
+2.遇到的问题
+    (1)、Python下遇到Cannot uninstall xx. It is a distutils installed...等提示，通过删除了本地xx-info文件解决。
+    (2)、Tensorflow进行测试时提示Restoring from checkpoint failed. This is most likely...，需要在Spyder中重启kernel。
+3.下周计划
+    (1)、根据测吧等方面安排，对AppCrawler的后续版本完善所需功能。
+
+
+6.23-6.28
+老师好。这是我6月23日至6月28日的总结：
+1.所学知识
+    (1)、新版Intellij IDEA连接gitlab，通过plugin连接远程仓库并同步。遇到包括通过管理Windows凭据纠正gitlab密码输入错误等问题。
+    (2)、通过Run Maven Build生成Appcrawler2.6.0包，通过生成与手动选择pom.xml文件解决没有maven projects问题；修改代码错误解决编译时maven:scala-maven-plugin错误。
+    (3)、运行Appcrawler 2.6.0对雪球app和中关村app进行测试，会有某些页面getPagesource失败和预测错误导致页面死循环等问题。
+    (4)、和思寒梳理了AppCrawler.scala和Crawler.scala代码逻辑与流程，整理部分笔记。
+    (5)、整理获取APK的appPackage和appActivity的方法；整理和复习Linux基础指令和grep awk sed指令的用法。以上部分见附件。
+2.下周计划
+    (1)、解决IDEA中push不成功只能使用force push、Crawler.scala代码用import包失败问题。
+    (2)、继续整理Crawler.scala等代码流程。Bootstrap的使用。
+
+
