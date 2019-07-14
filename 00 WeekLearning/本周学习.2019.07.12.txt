@@ -1,0 +1,27 @@
+7.7-7.12
+老师好。这是我7月7日至7月12日的总结：
+1.所处阶段
+    暑期项目测吧阶段。目前整理AppCrawler 2.6.0代码与测试用例，准备发布开源版本。
+2.所学知识
+    (1)、测吧学习了git book的知识，并且可以由目录生成不同格式的电子书。尝试使用了VS Code与PyCharm编辑器，并针对完成电子书写作与协作时所需要的Markdown等插件进行了对比与测试。
+    (2)、针对git book的不足，使用sphinx工具来生成包括ePub格式在内的文档，对配置文件conf.py和结构化目录列表index.rst进行设置并生成代码。
+    (3)、使用另一套代码，基于Tensorflow构建CNN并训练某数据集实现图像分类，同时使用了wxPython制作了图形界面。
+    (4)、了解Android中BottomNevagationView的使用和跳转方法，回顾Android界面布局方式，尝试使用SQLite数据库维护数据。
+    (5)、对某网站的图片数据进行抓取下载，最终所爬链接地址更变为了16进制加密地址，查询MD5或SHA1解密失败便不再抓取。
+3.遇到的问题
+    (1)、使用插件时提示Error while loading...connect ENOENT...，通过查询插件.sock格式在本地地址进行删除即可。
+    (2)、对于Markdown文档中图片在测吧文件目录下路径混乱问题，通过设置Base Path和Path，统一放置在assets文件夹内便于管理。
+
+
+6.30-7.5
+老师好。这是我6月30日至7月5日的总结：
+1.所学知识
+    (1)、学习整理并总结了AppCrawler 2.6.0核心代码的功能，包括AppCrawler类下的main方法、解析参数的具体流程，Crawler类下的start方法、爬取给定深度的crawlWithRetry方法、设置Appium模式的setupAppium方法，重点学习了递归爬取界面内所有元素的crawl方法以及函数之间的调用，包括寻找元素的getAvailableElement方法等。
+    (2)、通过对AppCrawler 2.6.0的学习，寻找到了一些还未实现的包括基于PO的自动功能、参数为null出现空指针异常的错误、可以进行重构的Util类、没有具体实现或运行到的代码等，今后可以针对这些内容进行有针对性的优化与改进。
+    (3)、简单学习Bootstrap前端框架的使用，同时了解了HTML、CSS和JavaScript的基础知识。了解qt。
+    (4)、了解并试用了百度AI平台EasyDL下的图片分类，对本地自制数据集进行分类并取得了好效果。尝试使用了Tensorflow构建卷积网络CNN并训练该数据集从而实现图像分类。
+2.遇到的问题
+    (1)、Python下遇到Cannot uninstall xx. It is a distutils installed...等提示，通过删除了本地xx-info文件解决。
+    (2)、Tensorflow进行测试时提示Restoring from checkpoint failed. This is most likely...，需要在Spyder中重启kernel。
+3.下周计划
+    (1)、根据测吧等方面安排，对AppCrawler的后续版本完善所需功能。
