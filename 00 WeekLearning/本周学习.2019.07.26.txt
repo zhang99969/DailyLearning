@@ -1,0 +1,31 @@
+7.21-7.26
+老师好。这是我7月14日至7月19日的总结：
+1.所处阶段
+    暑期项目测吧阶段。目前开发AppCrawler平台，完成后台App基本管理，完成了前后端的数据对接。
+2.所学知识
+    (1)、学习使用postman和IDEA内的Rest Client模拟发送包括JSON在内的请求，并对数据管理和数据库操作的进行测试。使用log.info等进行输出。
+    (2)、了解了MVC中的注解@RequestParam与@PathVariable的区别，部分方法由@PathVariable("id")传输数据改为通过@RequestBody对JSONObject进行传输。
+    (3)、添加FileController类和FileUtil工具类，参考代码并搭配@RequestMapping尝试实现文件上传的后台方法。
+    (4)、新建几个MsgResponse函数，显示不同情况下的错误结果。
+    (5)、制作接口表格，包含方法名称、Http请求的名称、前台后台发送的内容等，便于前后端分离开发。
+3.遇到的问题
+    (1)、"Missing URI template variable 'id' for method parameter of type int"，是由于(@PathVariable("appId") 和@RequestMapping(value = "/app/{appId}"不一致导致的。
+4.下周工作
+    (1)、思寒提供了测吧的服务器地址与权限，了解并复习Jenkins的持续集成。
+    (2)、App上传功能的测试。
+
+老师好。这是我7月14日至7月19日的总结：
+1.所处阶段
+    暑期项目测吧阶段。目前开始开发AppCrawler在线测试平台网站(暂命名，后称平台)。
+2.所学知识
+    (1)、开会梳理平台业务流程，主要是用户/公司→登陆网站→将App/Web提交到→平台/Saas服务（对App进行测试→调用Jenkins→手机/模拟器→存入DB→生成报告）。目前包括用户管理和App管理，使用SpringBoot、RESTful、MySQL和BootStrap等。
+    (2)、学习利用Spark构建Web页面，浏览器中打开可看到不同页面下的内容。
+    (3)、首先使用本地数据库，安装设置MySQL新建配置文件my.ini，并准备其他工具如Navicat并进行连接。新建平台所需数据库表，通过IDEA连接MySQL并进行包导入，实现对数据库进行操作。
+    (4)、查看使用VUE构建的前台以及相关页面，了解DAO、Service、Controller、Util、Model不同层级代码的作用，以及Mapper中对数据库的操作等，了解跨域问题。
+    (5)、思寒讲解并进一步实践了Git的拉取和Push的相关知识，便于代码管理。解决detached HEAD问题。
+3.遇到的问题
+    (1)、构建Web页面遇到了dependency not found、cannnot reconnect、spark.Spark.get()不适用、Lambda expression level和internal java compiler error等问题，通过修改setting、查看log、修改level和匹配相应版本解决。
+    (2)、MySQl提示plugin caching_sha2_password....，需要进行用户的规则与权限等进行设置。
+4.下周工作
+    (1)、完成网站平台的登陆注册页面、App上传与管理等前后台功能。
+    (2)、连接使用远程数据库。
