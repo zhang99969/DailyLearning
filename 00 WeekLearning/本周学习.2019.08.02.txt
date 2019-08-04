@@ -1,0 +1,30 @@
+7.28-8.2
+老师好。这是我7月28日至8月2日的总结：
+1.所处阶段
+    测吧平台项目，目前完成AppCrawler平台基本功能。
+2.所学知识
+    (1)、学习并实现了后端的分页查询，包括所有已上传的App和特定用户上传App的分页查询。通过使用jsonObject.getInteger获取当前页数，指定显示数量后进行分页查询。待数据量较大时改成通过索引进行查询。
+    (2)、将单独获取所有页数和数量的getPageAppListByUserId方法取消，改为在分页函数内调用SELECT COUNT(*)等方法进行获取并处理。并将数量和app列表通过put整合到同一个JSONObject内并返回。
+    (3)、实现App的上传功能，使用@RequestParam获取所上传的文件和相关参数，获取服务器路径后通过transferTo方法保存文件。使用Postman和HTTP Client进行了测试。
+    (4)、修改MsgResponse.success内的参数内容和成功后的提示语内容，避免与系统错误代码冲突修改几个错误代码。
+3.遇到的问题
+    (1)、Required request part 'file' is not present和Current request is not a multipart request，是由于使用HTTP Client测试时method、Request Body等没有正确填写导致。
+    (2)、Access denied for user 'ODBC'@'localhost' (using password: NO) ：在控制台中登录MySql的方法不对。
+
+
+
+7.21-7.26
+老师好。这是我7月21日至7月26日的总结：
+1.所处阶段
+    暑期项目测吧阶段。目前开发AppCrawler平台，完成后台App基本管理。完成了前后端的数据对接。
+2.所学知识
+    (1)、学习使用postman和IDEA内的Rest Client模拟发送包括JSON在内的请求，并对数据管理和数据库操作的进行测试。使用log.info等进行输出。
+    (2)、了解了MVC中的注解@RequestParam与@PathVariable的区别，部分方法由@PathVariable("id")传输数据改为通过@RequestBody对JSONObject进行传输。
+    (3)、添加FileController类和FileUtil工具类，参考代码并搭配@RequestMapping尝试实现文件上传的后台方法。
+    (4)、新建几个MsgResponse函数，显示不同情况下的错误结果。
+    (5)、制作接口表格，包含方法名称、Http请求的名称、前台后台发送的内容等，便于前后端分离开发。
+3.遇到的问题
+    (1)、"Missing URI template variable 'id' for method parameter of type int"，是由于(@PathVariable("appId") 和@RequestMapping(value = "/app/{appId}"不一致导致的。
+4.下周工作
+    (1)、思寒提供了测吧的服务器地址与权限，了解并复习Jenkins的持续集成。
+    (2)、App上传功能的测试。
