@@ -1,5 +1,5 @@
-8.25-8.30
-老师好。这是我本学期第1周8月25日至30日的总结：
+9.1-9.6
+老师好。这是我本学期第2周9月1日至6日的总结：
 1.完成的学习任务/工作任务
     (1)、完善测试平台后台代码，包括对常量和状态码进行修正、合并重复代码、添加用户验证时的正则判断、修改用户校验接口等。
     (2)、运行Appcrawler对一些app进行自动化测试，同时添加编写的配置文件，从而设置遍历过程中的控件黑名单、优先列表和超时时长等选项。
@@ -10,7 +10,7 @@
     (3)、了解TAPD腾讯敏捷产品开发平台，现在免费。平台包括需求、迭代、缺陷、文档等部分，便于团队协作。
 3.遇到的问题
     (1)、测吧的阿里云服务器SSH连接协议报错：Connection reset by peer，尝试重启服务器、设置防火墙、网页远程连接等方法，最终通过nc端口转发方式连接成功，推测是测吧所在地网络屏蔽了服务器地址。
-    (2)、Could not autowire、StringUtils无法调用方法、模拟器提示glTexImage2D: got err和Renderer error: failed to create/resize pbuffer，通过使用MyBatis plugin、修改调用的办法和以管理员运行模拟器解决。
+    (2)、提示Could not autowire、StringUtils无法调用方法、模拟器提示glTexImage2D: got err和Renderer error: failed to create/resize pbuffer，通过使用MyBatis plugin、修改调用的办法和以管理员运行模拟器解决。
 4.下周工作
     学习Neo4j数据库和diff的具体使用。
 
