@@ -86,6 +86,9 @@ class ElementStore{
     public String toString2() {
         return "ElementStore {StoreName:" + getElementStoreName() + "|reqHash:" + getReqHash() + "}";
     }
+    public String toString3() {
+        return getElement().getAncestor();
+    }
 }
 
 
@@ -436,6 +439,35 @@ public class ToYaml {
         return mapout;
     }
 
+    public static void  printInfo(Map<Integer,ElementStore> map)
+    {
+        for(ElementStore map2 : map.values()){//遍历ClickElment的map
+              //   System.out.println(map2.toString3()+"\n");
+            System.out.println(map2.getElement().getId());
+        }
+
+    }
+
+    public static void  printCombinedInfo(Map<Integer,Elements> map)//拼接clickedElements中的信息从而与ElementStore的name比较
+    {
+        String regEx="[\n`~!@#$%^&*()+=|{}':;',\\[\\].<>/?~！@#￥%……&*（）——+|{}（【】‘；：”“’。， 、？]";
+        for(Elements map2 : map.values()){//遍历ClickElment的map
+            String tag2=map2.getTag().replace("android.widget.","");
+            String id2=map2.getId().substring(map2.getId().lastIndexOf("/")+1);
+            String text2=map2.getText().replaceAll(regEx,"");
+            //System.out.println(id2);
+            //System.out.println(map2.getId());
+            String combined= map2.getUrl()+".tag="+tag2+".depth="+map2.getDepth();//+".id="+map2.getId();+".text="+map2.getText();
+            if(!map2.getId().isEmpty())//仍然是getid
+                combined=combined+".id="+id2;
+            if(!map2.getText().isEmpty())
+                combined=combined+".text="+text2;
+            if(!map2.getName().isEmpty())
+                combined=combined+".name="+map2.getName();
+          //  System.out.println(combined);
+        }
+
+    }
     public static void main(String[] args) {
 
         ToYaml ty2 = new ToYaml();
@@ -477,8 +509,10 @@ public class ToYaml {
         tp.connect();
         //并建立图结构的连接
         System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+    //    printInfo(map2);
+        printCombinedInfo(map);
        // System.out.println(getOrderFromClickElmentAndgetInfoFromElementStore(map,map2));
-        tp.addNodeWithElementStoreMap(getOrderFromClickElmentAndgetInfoFromElementStore(map,map2));
+       // tp.addNodeWithElementStoreMap(getOrderFromClickElmentAndgetInfoFromElementStore(map,map2));
 
     }
 
