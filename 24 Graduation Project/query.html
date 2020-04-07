@@ -1,0 +1,488 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="A d3js example for neo4j">
+  <meta name="author" content="Mic Wan">
+
+  <title>D3js Example for Neo4j</title>
+
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="css/bootstrap.min.css">
+  <link rel="stylesheet" href="css/font-awesome.min.css">
+  <!-- Custom styles for this template -->
+  <link rel="stylesheet" href="css/main.css">
+</head>
+
+<body>
+
+<div class="container-fluid">
+  <div class="row" style="height:70px; margin-bottom: 15px"; >
+    <div class="col col-11 col-md-11 form-inline" style="background-color:lavender;"></div>
+    <div class="col col-1 col-md-1 form-inline" style="background-color:lavender;">
+      <button type="button" class="btn btn-outline-primary" id="btnBack" style="background-color: white">
+        <i class="fa fa-backward" aria-hidden="true"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="col col-11 col-md-11 form-inline">
+
+      <input type="text" class="form-control form-control-sm" size="40px" id="queryText" placeholder="输入查询内容" />
+      <button type="button" class="btn btn-outline-primary btn-sm" id="btnSend">
+        <i class="fa fa-check" aria-hidden="true"></i> 查询
+      </button>
+      <input class="form-check-input" type="checkbox" id="chkboxCypherQry" value="1" />
+      <label class="form-check-label" for="chkboxCypherQry">使用Cypher语法</label>
+      <button type="button" class="btn btn-outline-primary btn-sm" id="btnNum" style="margin-left:50px;">
+        <i class="fa fa-list-ol" aria-hidden="true"></i>计算测试用例数量
+      </button>
+
+      <button type="button" class="btn btn-outline-primary btn-sm" id="btnCmp" style="margin-left:50px;">
+        <i class="fa fa-file-text-o" aria-hidden="true"></i>对比与合并
+      </button>
+    </div>
+    <div class="col col-1 col-md-1 form-inline">111
+    </div>
+  </div>
+</div>
+
+<hr/>
+
+<div class="container-fluid">
+
+  <div class="row">
+
+
+    <div class="col col-11 col-md-11" id="graphContainer" style="padding-right: 0px">
+      <div class="resultNum" id="resultNumContainer"></div>
+      <svg id="resultSvg"></svg>
+    </div>
+    <div class="col col-1 col-md-1 form-inline">111
+    </div>
+  </div>
+  <div class="row">
+    <div class="col col-11 col-md-11" style="padding-right:0px" >
+      <div id="propertiesBox"></div>
+    </div>
+    <div class="col col-1 col-md-1 form-inline">111
+    </div>
+  </div>
+</div>
+
+<!-- jQuery first, then Popper.js, then Bootstrap JS -->
+
+<script src="js/jquery-3.3.1.min.js"></script>
+<script src="js/popper.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="js/d3.v5.min.js"></script>
+<script src="js/d3js-example-neo4j.js"></script>
+<script type="text/javascript">
+  "use strict";
+
+  //######################### const #########################
+  var graphWidth =(document.documentElement.clientWidth-15)/12*11;// 1024; //default
+  var graphHeight = 450;
+
+  var neo4jAPIURL = 'http://localhost:7474/db/data/transaction/commit';
+  var neo4jLogin = 'neo4j';
+  var neo4jPassword = 'password';
+
+  var circleSize = 20;
+  var textPosOffsetY = 5;
+
+  var collideForceSize = circleSize * 2.5;
+  var linkForceSize = 150;
+
+  var arrowHeight = 6;
+  var arrowWidth = 10 ;
+
+
+  //######################### variable #########################
+  var nodeItemMap = {};
+  var linkItemMap = {};
+
+  var d3Simulation = null;
+  var circles;
+  var circleText;
+  var lines;
+  var lineText;
+
+  var itemColorMap = {};
+  var colorScale = d3.scaleOrdinal(d3.schemeSet2);
+
+  var drag_handler = d3.drag()
+          .on('start', drag_start)
+          .on('drag', drag_move)
+          .on('end', drag_end);
+
+  var zoom_handler = d3.zoom()
+          .filter(function() {
+            //Only enable wheel zoom and mousedown to pan
+            return (d3.event.type == 'wheel' | d3.event.type == 'mousedown');
+          })
+          .on('zoom', zoom_actions);
+
+  window.onresize = function(){
+    graphWidth=(document.documentElement.clientWidth-15)/12*11;
+    initGraph();//显示图的框重绘
+   // updateGraph(); no need
+    //var svg = d3.select('#propertiesBox');
+  //  svg.attr('width', graphWidth);//显示属性的框重绘
+
+  }
+  function unfreezeItms() {
+    var nodeItmArray = d3Simulation.nodes();
+    if (nodeItmArray != null) {
+      nodeItmArray.forEach(function(nodeItm) {
+        if (nodeItm.fx != null) {
+          nodeItm.fx = null;
+          nodeItm.fy = null;
+        }
+      });
+    }
+  }
+
+  function drag_start(d) {
+    //if (!d3.event.active && d3Simulation != null)
+    d3Simulation.alphaTarget(0.3).restart();
+    d.fx = d.x;
+    d.fy = d.y;
+  }
+
+  function drag_move(d) {
+    d.fx = d3.event.x;
+    d.fy = d3.event.y;
+  }
+
+  function drag_end(d) {
+    if (!d3.event.active && d3Simulation != null)
+      d3Simulation.alphaTarget(0);
+    //d.fx = null;
+    //d.fy = null;
+  }
+
+  function zoom_actions(){
+    d3.select('#resultSvg').select('g').attr('transform', d3.event.transform);
+  }
+
+  function initGraph() {
+    var svg = d3.select('#resultSvg');
+    var zoomGLayer = svg.append('g');
+
+    var centerX = graphWidth / 2;
+    var centerY = graphHeight / 2;
+
+    svg.attr('width', graphWidth)
+            .attr('height', graphHeight);
+
+    /*
+    var defs = svg.append('defs');
+    Not use marker as IE does not support it and so embed the arrow in the path directly
+    // define arrow markers for graph links
+    defs.append('marker')
+      .attr('id', 'end-arrow')
+      .attr('viewBox', '0 -5 10 10')
+      .attr('refX', 10)
+      .attr('markerWidth', 5)
+      .attr('markerHeight', 5)
+      .attr('orient', 'auto')
+      .append('path')
+      .attr('d', 'M0,-5L10,0L0,5');
+    */
+
+    zoomGLayer.append('g').attr('id', 'circle-group').attr('transform', 'translate(' + centerX + ',' + centerY + ')');
+    zoomGLayer.append('g').attr('id', 'text-group').attr('transform', 'translate(' + centerX + ',' + centerY + ')');
+    zoomGLayer.append('g').attr('id', 'path-group').attr('transform', 'translate(' + centerX + ',' + centerY + ')');
+    zoomGLayer.append('g').attr('id', 'path-label-group').attr('transform', 'translate(' + centerX + ',' + centerY + ')');
+
+    zoom_handler(svg);
+  }
+
+  function stopSimulation() {
+    if (d3Simulation != null) {
+      d3Simulation.stop()
+              .on('tick', null);
+      d3Simulation = null;
+    }
+  }
+
+  function tick() {
+    lines.attr('d', drawLine);
+    lineText.attr('transform', transformPathLabel);
+    circles.attr('transform', transform);
+    circleText.attr('transform', transform);
+  }
+
+  function transformPathLabel(d) {
+    var sourceX = d.source.x + ((d.target.x - d.source.x) / 2);
+    var sourceY = d.source.y + ((d.target.y - d.source.y) / 2);
+    return 'translate(' + sourceX + ',' + sourceY + ')';
+  }
+
+  function transform(d) {
+    return 'translate(' + d.x + ',' + d.y + ')';
+  }
+
+  function drawLine(d) {
+    var deltaX, deltaY, dist, cosTheta, sinTheta, sourceX, sourceY, targetX, targetY;
+
+    deltaX = d.target.x - d.source.x;
+    deltaY = d.target.y - d.source.y;
+
+    dist = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+    cosTheta = dist==0?0:deltaX / dist;
+    sinTheta = dist==0?0:deltaY / dist;
+    //console.log("dist="+dist+" cos0="+cosTheta+" sin0="+sinTheta);//有的出现了NaN,因为结点不再移动dist=0
+    sourceX = d.source.x + (circleSize * cosTheta);
+    sourceY = d.source.y + (circleSize * sinTheta);
+    targetX = d.target.x - (circleSize * cosTheta);
+    targetY = d.target.y - (circleSize * sinTheta);
+
+    //Not use marker as IE does not support it and so embed the arrow in the path directly
+    var arrowLeftX, arrowLeftY, arrowRightX, arrowRightY;
+
+    arrowLeftX = targetX - (arrowHeight * sinTheta) - (arrowWidth * cosTheta);
+    arrowLeftY = targetY + (arrowHeight * cosTheta) - (arrowWidth * sinTheta);
+    arrowRightX = targetX + (arrowHeight * sinTheta) - (arrowWidth * cosTheta);
+    arrowRightY = targetY - (arrowHeight * cosTheta) - (arrowWidth * sinTheta);
+
+    // console.log("deltaX="+deltaX+"deltaY="+deltaY+'M' + sourceX + ' ' + sourceY + ' L' + targetX + ' ' + targetY
+    //         + ' L' + arrowLeftX + ' ' + arrowLeftY + ' L' + arrowRightX + ' ' + arrowRightY + ' Z');
+    //deltaX=119.83110847864072deltaY=-114.77175298122802M-514.1579521293042 -376.09107411799016 L-437.6581271750179 -449.3610214983528 L-440.72982720232375 -438.1109255457731 L-449.0301883224968 -446.777182250644 Z
+    return 'M' + sourceX + ' ' + sourceY + ' L' + targetX + ' ' + targetY
+            + ' M' + targetX + ' ' + targetY + ' L' + arrowLeftX + ' ' + arrowLeftY
+            + ' L' + arrowRightX + ' ' + arrowRightY + ' Z';
+  }
+
+  function clearProperties() {
+    $('#propertiesBox').empty();
+  }
+
+  function showProperties(d) {
+    clearProperties();
+
+    var propertiesText = 'id: ' + d.id;
+    //For nodes
+    if (d.labels != null)
+      propertiesText += ', labels: ' + d.labels.join(', ');
+    //For links
+    if (d.type != null)
+      propertiesText += ', type: ' + d.type;
+
+    $.map(d.properties, function(value, key) {
+      propertiesText += ', ' + key + ': ' + value;
+    });
+
+    $('#propertiesBox').append($('<p></p>').text(propertiesText));
+
+
+  }
+
+  function updateGraph() {
+    var d3LinkForce = d3.forceLink()
+            .distance(linkForceSize)
+            .links(mapToArray(linkItemMap))
+            .id(function(d) {return d.id;});
+
+    d3Simulation = d3.forceSimulation()
+            //.force('chargeForce', d3.forceManyBody())//.strength(-300)
+            .force('collideForce', d3.forceCollide(collideForceSize))
+            .nodes(mapToArray(nodeItemMap))
+            .force('linkForce', d3LinkForce);
+
+    circles = d3.select('#circle-group').selectAll('circle')
+            .data(d3Simulation.nodes(), function(d) {return d.id;});
+    circleText = d3.select('#text-group').selectAll('text')
+            .data(d3Simulation.nodes(), function(d) {return d.id;});
+    lines = d3.select('#path-group').selectAll('path')
+            .data(d3LinkForce.links(), function(d) {return d.id;});
+    lineText = d3.select('#path-label-group').selectAll('text')
+            .data(d3LinkForce.links(), function(d) {return d.id;});
+
+    circles.exit().remove();
+    circles = circles.enter().append('circle')
+            .attr('r', circleSize)
+            .attr('fill', getItemColor)
+            .attr('stroke', function(d) {return getColorDarker(getItemColor(d));})
+            .call(drag_handler)
+            .on('mouseover', function(d) {
+              d3.select(this)
+                      .attr('fill', function(d) {return getColorBrighter(getItemColor(d));})
+                      .attr('stroke', getItemColor);
+              showProperties(d);
+            })
+            .on('mouseout', function(d) {
+              d3.select(this)
+                      .attr('fill', getItemColor)
+                      .attr('stroke', function(d) {return getColorDarker(getItemColor(d));});
+            })
+            .on('dblclick', function(d) {
+              d.fx = d.x;
+              d.fy = d.y;
+              submitQuery(d.id);
+            })
+            .merge(circles);
+
+    circleText.exit().remove();
+    circleText = circleText.enter().append('text')
+            .attr('y', textPosOffsetY)
+            .attr('text-anchor', 'middle')
+            .text(function(d) {return d.properties.name;})//结点显示的属性
+            .merge(circleText);
+
+    lines.exit().remove();
+    lines = lines.enter().append('path')
+            //.attr('marker-end', 'url(#end-arrow)')
+            .on('mouseover', function(d) {
+              showProperties(d);
+            })
+            .merge(lines);
+
+    lineText.exit().remove();
+    lineText = lineText.enter().append('text')
+            .attr('y', textPosOffsetY)
+            .attr('text-anchor', 'middle')
+            .text(function(d) {return d.type;})
+            .merge(lineText);
+
+    d3Simulation
+            .on('tick', tick)
+            .on('end', function() {
+              unfreezeItms();
+            });
+  }
+
+  function submitQuery(nodeID) {
+    removeAlert();
+
+    var queryStr = null;
+    if (nodeID == null || !nodeID) {
+      queryStr = $.trim($('#queryText').val());
+      if (queryStr == '') {
+        promptAlert($('#graphContainer'), '错误：搜索内容不能为空 ', true);
+        return;
+      }
+      if ($('#chkboxCypherQry:checked').val() != 1)//未勾选
+      {queryStr = 'match (n) where n.name =~ \'(?i).*' + queryStr + '.*\' return n';
+      }
+    } else
+    {queryStr = 'match (n)-[j]-(k) where id(n) = ' + nodeID + ' return n,j,k';
+    }
+    stopSimulation();
+
+    if (nodeID == null || !nodeID) {
+      nodeItemMap = {};
+      linkItemMap = {};
+    }
+
+    var jqxhr = $.post(neo4jAPIURL, '{"statements":[{"statement":"' + queryStr + '", "resultDataContents":["graph"]}]}',
+            function(data) {
+              //console.log(JSON.stringify(data));
+              if (data.errors != null && data.errors.length > 0) {
+                promptAlert($('#graphContainer'), '错误: 语法' + data.errors[0].message + '(' + data.errors[0].code + ')', true);
+                return;
+              }
+
+              if (data.results != null && data.results.length > 0 && data.results[0].data != null && data.results[0].data.length > 0) {
+                var neo4jDataItmArray = data.results[0].data;
+                neo4jDataItmArray.forEach(function(dataItem) {
+                  //Node
+                  if (dataItem.graph.nodes != null && dataItem.graph.nodes.length > 0) {
+                    var neo4jNodeItmArray = dataItem.graph.nodes;
+                    neo4jNodeItmArray.forEach(function(nodeItm) {
+                      if (!(nodeItm.id in nodeItemMap))
+                        nodeItemMap[nodeItm.id] = nodeItm;
+
+                    });
+                  }
+                  //Link
+                  if (dataItem.graph.relationships != null && dataItem.graph.relationships.length > 0) {
+                    var neo4jLinkItmArray = dataItem.graph.relationships;
+                    neo4jLinkItmArray.forEach(function(linkItm) {
+                      if (!(linkItm.id in linkItemMap)) {
+                        linkItm.source = linkItm.startNode;
+                        linkItm.target = linkItm.endNode;
+                        linkItemMap[linkItm.id] = linkItm;
+
+                      }
+                    });
+                  }
+                });
+
+                promptAlert($('#resultNumContainer'), '共有' + Object.keys(nodeItemMap).length + '个结点，'+Object.keys(linkItemMap).length+'条关系', false);
+                //console.log('nodeItemMap.size:' + Object.keys(nodeItemMap).length+'linkItemMap.size:' + Object.keys(linkItemMap).length);
+
+
+                updateGraph();
+                clearProperties();//搜索后清空属性栏内的信息
+                return;
+              }
+
+              //also update graph when empty
+              updateGraph();
+              clearProperties();//搜索后清空属性栏内的信息
+              promptAlert($('#graphContainer'), '抱歉，没有找到相关结点和关系 !', false);
+            }, 'json');
+
+    jqxhr.fail(function(data) {
+      promptAlert($('#graphContainer'), '错误: 请求了查询但数据返回错误 (' + data + ')', true);
+    });
+  }
+
+  function getItemColor(d) {
+    if (!(d.labels[0] in itemColorMap))
+      itemColorMap[d.labels[0]] = colorScale(d.labels[0]);
+    return itemColorMap[d.labels[0]];
+  }
+
+  function getColorBrighter(targetColor) {
+    return d3.rgb(targetColor).brighter(0.3).toString();
+  }
+
+  function getColorDarker(targetColor) {
+    return d3.rgb(targetColor).darker().toString();
+  }
+
+  function showDefaultGraph()
+  {
+
+
+  }
+
+
+  //Page Init
+  $(function() {
+    setupNeo4jLoginForAjax(neo4jLogin, neo4jPassword);
+
+    initGraph();
+    //var svg = d3.select('#propertiesBox');
+  //  svg.attr('width', 1024);
+
+
+    $('#queryText').keyup(function(e) {
+      if(e.which == 13) {
+        submitQuery();
+      }
+    });
+
+    $('#btnSend').click(function() {submitQuery()});
+
+    $('#chkboxCypherQry').change(function() {
+      if (this.checked)
+        $('#queryText').prop('placeholder', 'Cypher');
+      else
+        $('#queryText').prop('placeholder', 'Node Name');
+    });
+  });
+</script>
+</body>
+</html>
