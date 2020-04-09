@@ -35,11 +35,11 @@
   <div class="row">
     <div class="col col-11 col-md-11 form-inline">
 
-      <input type="text" class="form-control form-control-sm" size="40px" id="queryText" placeholder="输入查询内容" />
+      <input type="text" class="form-control form-control-sm" size="40px" id="queryText" onfocus="this.select()" placeholder="输入查询内容"  />
       <button type="button" class="btn btn-outline-primary btn-sm" id="btnSend">
         <i class="fa fa-check" aria-hidden="true"></i> 查询
       </button>
-      <input class="form-check-input" type="checkbox" id="chkboxCypherQry" value="1" />
+      <input class="form-check-input" type="checkbox" id="chkboxCypherQry" value="1" style="margin-left:20px;"/>
       <label class="form-check-label" for="chkboxCypherQry">使用Cypher语法</label>
       <button type="button" class="btn btn-outline-primary btn-sm" id="btnNum" style="margin-left:50px;">
         <i class="fa fa-list-ol" aria-hidden="true"></i>计算测试用例数量
@@ -48,6 +48,11 @@
       <button type="button" class="btn btn-outline-primary btn-sm" id="btnCmp" style="margin-left:50px;">
         <i class="fa fa-file-text-o" aria-hidden="true"></i>对比与合并
       </button>
+
+      <button type="button" class="btn btn-outline-primary btn-sm" id="btnPos" style="margin-left:50px" >
+        <i class="fa fa-location-arrow" aria-hidden="true"></i>显示在原图中的位置
+      </button>
+
     </div>
     <div class="col col-1 col-md-1 form-inline">111
     </div>
@@ -114,6 +119,7 @@
   var circleText;
   var lines;
   var lineText;
+  var circlesinResult;
 
   var itemColorMap = {};
   var colorScale = d3.scaleOrdinal(d3.schemeSet2);
@@ -325,7 +331,7 @@
                       .attr('fill', getItemColor)
                       .attr('stroke', function(d) {return getColorDarker(getItemColor(d));});
             })
-            .on('dblclick', function(d) {
+            .on('dblclick', function(d) {//双击显示与其相连的
               d.fx = d.x;
               d.fy = d.y;
               submitQuery(d.id);
@@ -361,8 +367,10 @@
             });
   }
 
+
   function submitQuery(nodeID) {
     removeAlert();
+    document.getElementById("btnPos").disabled=false;
 
     var queryStr = null;
     if (nodeID == null || !nodeID) {
@@ -438,10 +446,125 @@
     });
   }
 
+  function submitQuery2(nodeID) {
+    removeAlert();
+    document.getElementById("btnPos").disabled=false;
+
+    var queryStr = null;
+    if (nodeID == null || !nodeID) {
+      queryStr = $.trim($('#queryText').val());
+      if (queryStr == '') {
+        promptAlert($('#graphContainer'), '错误：搜索内容不能为空 ', true);
+        return;
+      }
+      if ($('#chkboxCypherQry:checked').val() != 1)//未勾选
+      {queryStr = 'match (n) where n.name =~ \'(?i).*' + queryStr + '.*\' return n';
+      }
+    } else
+    {queryStr = 'match (n)-[j]-(k) where id(n) = ' + nodeID + ' return n,j,k';
+    }
+    stopSimulation();
+
+    if (nodeID == null || !nodeID) {
+      nodeItemMap = {};
+      linkItemMap = {};
+    }
+
+    var jqxhr = $.post(neo4jAPIURL, '{"statements":[{"statement":"' + queryStr + '", "resultDataContents":["graph"]}]}',
+            function(data) {
+              //console.log(JSON.stringify(data));
+              if (data.errors != null && data.errors.length > 0) {
+                promptAlert($('#graphContainer'), '错误: 语法' + data.errors[0].message + '(' + data.errors[0].code + ')', true);
+                return;
+              }
+
+              if (data.results != null && data.results.length > 0 && data.results[0].data != null && data.results[0].data.length > 0) {
+                var neo4jDataItmArray = data.results[0].data;
+                neo4jDataItmArray.forEach(function(dataItem) {
+                  //Node
+                  if (dataItem.graph.nodes != null && dataItem.graph.nodes.length > 0) {
+                    var neo4jNodeItmArray = dataItem.graph.nodes;
+                    neo4jNodeItmArray.forEach(function(nodeItm) {
+                      if (!(nodeItm.id in nodeItemMap))
+                        nodeItemMap[nodeItm.id] = nodeItm;
+
+                    });
+                  }
+                  //Link
+                  if (dataItem.graph.relationships != null && dataItem.graph.relationships.length > 0) {
+                    var neo4jLinkItmArray = dataItem.graph.relationships;
+                    neo4jLinkItmArray.forEach(function(linkItm) {
+                      if (!(linkItm.id in linkItemMap)) {
+                        linkItm.source = linkItm.startNode;
+                        linkItm.target = linkItm.endNode;
+                        linkItemMap[linkItm.id] = linkItm;
+
+                      }
+                    });
+                  }
+                });
+
+                promptAlert($('#resultNumContainer'), '共有' + Object.keys(nodeItemMap).length + '个结点，'+Object.keys(linkItemMap).length+'条关系', false);
+                //console.log('nodeItemMap.size:' + Object.keys(nodeItemMap).length+'linkItemMap.size:' + Object.keys(linkItemMap).length);
+
+
+                updateGraph();
+                clearProperties();//搜索后清空属性栏内的信息
+                return;
+              }
+
+              //also update graph when empty
+              updateGraph();
+              clearProperties();//搜索后清空属性栏内的信息
+              promptAlert($('#graphContainer'), '抱歉，没有找到相关结点和关系 !', false);
+            }, 'json');
+
+    jqxhr.fail(function(data) {
+      promptAlert($('#graphContainer'), '错误: 请求了查询但数据返回错误 (' + data + ')', true);
+    });
+  }
+
+
   function getItemColor(d) {
-    if (!(d.labels[0] in itemColorMap))
+    if (!(d.labels[0] in itemColorMap)) {
       itemColorMap[d.labels[0]] = colorScale(d.labels[0]);
+    }
+    /*
+    console.log("circlesinResult");
+    console.log(circlesinResult);
+    console.log("DRAW");
+    console.log(d.id);*/
+    var flag = true;
+    if (circlesinResult != null) {
+    circlesinResult.each(function(dd,i) {//dd是之前的搜索结果
+      /*String
+      let outt;
+      outt="d "+d.id+"| dd "+dd.id;
+      console.log(outt);*/
+      if(d.id==dd.id)
+      {
+        ////itemColorMap[d.labels[0]]="#62d1fc";
+        //该停止循环了，但d3的selection.each不支持中途停止，只好用flag
+        flag=false;
+      }
+      else{
+        ////itemColorMap[d.labels[0]] = colorScale(d.labels[0]);//其余颜色不变
+      }
+    });
+    }
+    if(!flag){     itemColorMap[d.labels[0]]="#62d1fc";    }
+    else    {      itemColorMap[d.labels[0]] = colorScale(d.labels[0]);//其余颜色不变
+    }
+   // console.log(itemColorMap[d.labels[0]]);
     return itemColorMap[d.labels[0]];
+/*
+    if(d.id == circlesinResult.)//搜索结果中的图在显示位置时用其他颜色
+    {
+    _groups[""0""][""0""].__data__.id
+    _groups[""0""][1].__data__.id
+      itemColorMap[d.labels[0]]="#62d1fc";
+    }*/
+
   }
 
   function getColorBrighter(targetColor) {
@@ -454,6 +577,36 @@
 
   function showDefaultGraph()
   {
+    //进入页面默认显示完整的图结构
+    $("#queryText").val("MATCH (f1:PageWithES) MATCH path = (f1)-[]->(f:PageWithES) RETURN path;");
+    if(! $("#chkboxCypherQry").is(":checked")) {
+      $("#chkboxCypherQry").click();
+      submitQuery();
+      $("#chkboxCypherQry").click();
+    }
+    else{submitQuery();}
+
+    $("#queryText").val("输入查询内容");
+    document.getElementById("btnPos").disabled=true;
+  }
+
+  function showPosinFullGraph()
+  {
+    //console.log("getPosCir");
+    circlesinResult = d3.select('#circle-group').selectAll('circle');
+    //console.log(circles);
+    showDefaultGraph();//显示全图
+
+    circlesinResult.each(function(d, i) {
+      var onClickFunc = d3.select(this).on("mouseover");
+      onClickFunc.apply(this, [d, i]);
+    });//鼠标划过每个结点，否则颜色不会变*/
+      //也可以直接把划过的颜色更改，但真实鼠标滑过之后颜色会恢复
+    circlesinResult.each(function(d, i) {
+      var onClickFunc = d3.select(this).on("mouseout");
+      onClickFunc.apply(this, [d, i]);//再把所有鼠标滑过的划走，不然还是亮色
+    });
+
 
 
   }
@@ -464,6 +617,7 @@
     setupNeo4jLoginForAjax(neo4jLogin, neo4jPassword);
 
     initGraph();
+    showDefaultGraph();
     //var svg = d3.select('#propertiesBox');
   //  svg.attr('width', 1024);
 
@@ -474,7 +628,11 @@
       }
     });
 
-    $('#btnSend').click(function() {submitQuery()});
+    $('#btnSend').click(            function() {submitQuery()}            );
+    $('#btnBack').click(            function() {showDefaultGraph()}    );
+    $('#btnPos').click(            function() {showPosinFullGraph()}    );
+
+
 
     $('#chkboxCypherQry').change(function() {
       if (this.checked)
