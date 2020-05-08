@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>D3js test step page</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/font-awesome.min.css">
+    <!-- Custom styles for this template -->
+    <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row" style="height:70px; margin-bottom: 15px"; >
+        <div class="col col-10 col-md-10 form-inline" style="background-color:lavender;"><h1>分析测试用例</h1></div>
+        <div class="col col-1 col-md-1 form-inline" style="background-color:lavender;">
+            <a href="query.html"><button type="button" class="btn btn-outline-primary" id="btnHome" style="background-color: white">
+                <i class="fa fa-home" aria-hidden="true"></i>
+            </button></a>
+        </div>
+        <div class="col col-1 col-md-1 form-inline" style="background-color:lavender;">
+            <a href="javascript:history.back(-1)"> <button type="button" class="btn btn-outline-primary" id="btnBack" style="background-color: white">
+                <i class="fa fa-backward" aria-hidden="true"></i>
+            </button></a>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+
+    <div class="row" style="margin-left: 50px;margin-right: 50px" >
+        <h4><div id="name"></div></h4>
+    </div>
+    <div class="row" style="margin-left: 50px;margin-right: 50px" >
+        <h6><div id="name2"></div></h6>
+    </div>
+</div>
+
+
+
+<!-- jQuery first, then Popper.js, then Bootstrap JS -->
+
+<script src="js/jquery-3.3.1.min.js"></script>
+<script src="js/jquery.params.js"></script>
+<script src="js/popper.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="js/d3.v5.min.js"></script>
+<script src="js/d3js-example-neo4j.js"></script>
+<script type="text/javascript">
+    "use strict";
+    //######################### const #########################
+
+
+    //想得到nodeItemMap的值，在代码中console.log输出nodeItemMap和nodeItem的不同形式都不可以，其中一种显示{}，点击展开才有内容。
+    // 直接在chrome的console中输入变量却可以看到。
+    // 最终使用neo4jNodeItm=dataItem.graph.nodes[0]; 得到内容，但只在当前函数内有效(但是函数外的 console.log(nodeItemMap)仍然可以显示)
+    // ，在fillData函数中console输出仍为空，考虑是异步
+
+
+
+
+    //Page Init
+    $(function() {
+        var neo4jAPIURL = 'http://localhost:7474/db/data/transaction/commit';
+        var neo4jLogin = 'neo4j';
+        var neo4jPassword = 'password';
+
+        //######################### variable #########################
+        var nodeItemMap = {};
+        var id;
+        var nodeItem;
+        var neo4jNodeItm;
+        var nodeName;
+        var nodeIndex;
+
+        var nodelist=sessionStorage.getItem('clickednode');
+        console.log(nodelist);
+
+
+        function submitQuery(nodeID) {
+            var queryStr =  'match (n)  where id(n) = ' + nodeID + ' return n';
+            var jqxhr = $.post(neo4jAPIURL, '{"statements":[{"statement":"' + queryStr + '", "resultDataContents":["graph"]}]}',
+                function(data) {
+                    // console.log(data);
+                    if (data.results != null && data.results.length > 0 && data.results[0].data != null && data.results[0].data.length > 0) {
+                        var neo4jDataItmArray = data.results[0].data;
+                        neo4jDataItmArray.forEach(dataItem => {
+                            neo4jNodeItm=dataItem.graph.nodes[0];
+                            console.log(neo4jNodeItm);
+
+
+                        });
+                        // return;
+                    }
+                }, 'json');
+
+
+
+        }
+
+
+        setupNeo4jLoginForAjax(neo4jLogin, neo4jPassword);
+
+
+    });
+</script>
+</body>
+</html>

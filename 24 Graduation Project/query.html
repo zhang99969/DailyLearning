@@ -20,10 +20,19 @@
 
 <div class="container-fluid">
   <div class="row" style="height:70px; margin-bottom: 15px"; >
-    <div class="col col-11 col-md-11 form-inline" style="background-color:lavender;"></div>
+    <div class="col col-10 col-md-10 form-inline" style="background-color:lavender;">
+      <h4><div id="name"></div></h4>
+    </div>
+    <div class="col col-1 col-md-1 form-inline" style="background-color:lavender;">
+      <button type="button" class="btn btn-outline-primary" id="btnOpen" style="background-color: white">
+        <i class="fa fa-plus" aria-hidden="true"></i>
+      </button>
+      <input type="file" name="file" id="fileUpload" webkitdirectory directory multiple style="display: none"/>
+
+</div>
     <div class="col col-1 col-md-1 form-inline" style="background-color:lavender;">
       <button type="button" class="btn btn-outline-primary" id="btnBack" style="background-color: white">
-        <i class="fa fa-backward" aria-hidden="true"></i>
+        <i class="fa fa-refresh" aria-hidden="true"></i>
       </button>
     </div>
   </div>
@@ -42,15 +51,15 @@
       <input class="form-check-input" type="checkbox" id="chkboxCypherQry" value="1" style="margin-left:20px;"/>
       <label class="form-check-label" for="chkboxCypherQry">使用Cypher语法</label>
       <button type="button" class="btn btn-outline-primary btn-sm" id="btnNum" style="margin-left:50px;">
-        <i class="fa fa-list-ol" aria-hidden="true"></i>计算测试用例数量
+        <i class="fa fa-list-ol" aria-hidden="true"></i> 计算测试用例数量
       </button>
 
       <button type="button" class="btn btn-outline-primary btn-sm" id="btnCmp" style="margin-left:50px;">
-        <i class="fa fa-file-text-o" aria-hidden="true"></i>对比与合并
+        <i class="fa fa-file-text-o" aria-hidden="true"></i> 对比与合并
       </button>
 
       <button type="button" class="btn btn-outline-primary btn-sm" id="btnPos" style="margin-left:50px" >
-        <i class="fa fa-location-arrow" aria-hidden="true"></i>显示在原图中的位置
+        <i class="fa fa-location-arrow" aria-hidden="true"></i> 显示在原图中的位置
       </button>
 
     </div>
@@ -71,6 +80,9 @@
 
       <button type="button" class="btn btn-outline-primary btn-sm" id="btnShowpath"  >
         分析测试步骤
+      </button>
+      <button type="button" class="btn btn-outline-primary btn-sm" id="btnShowcase"  >
+        分析测试用例
       </button>
 
     </div>
@@ -115,6 +127,7 @@
   //######################### variable #########################
   var nodeItemMap = {};
   var linkItemMap = {};
+  var clickednode=[];
 
   var d3Simulation = null;
   var circles;
@@ -298,7 +311,9 @@
       propertiesText += ', type: ' + d.type;
 
     $.map(d.properties, function(value, key) {
-      propertiesText += ', ' + key + ': ' + value;
+      if(key=="reqDom"||key=="resDom")
+      {}
+      else{   propertiesText += ', ' + key + ': ' + value;}
     });
 
     $('#propertiesBox').append($('<p></p>').text(propertiesText));
@@ -343,6 +358,11 @@
               d3.select(this)
                       .attr('fill', getItemColor)
                       .attr('stroke', function(d) {return getColorDarker(getItemColor(d));});
+            })
+            .on('click',function (d) {
+              d3.select(this)
+                      .attr('fill', function(d) {return getClickedItemColor(d);  })
+                      .attr('stroke', function(d) {return getColorDarker("#62d1fc");});
             })
             .on('dblclick', function(d) {//双击显示与其相连的
               d.fx = d.x;
@@ -459,8 +479,53 @@
     });
   }
 
+  function setTestcaseButton()
+  {
+    if(clickednode.length>1)    {
+      document.getElementById("btnShowcase").disabled=false;//点击多个结点后该按钮可以点击
+    //  document.getElementById("btnShowpath").disabled=true;//此时 测试步骤 按钮不可点。没必要，可以分析属性栏显示的结点
+    }
+    else if(clickednode.length=1){
+     // document.getElementById("btnShowpath").disabled=false;
+      document.getElementById("btnShowcase").disabled=true;
+    }
+    else{  document.getElementById("btnShowcase").disabled=true;
+     // document.getElementById("btnShowpath").disabled=true;
+    }
+  }
+
+  var ClickedItemnum=0;//被点击的结点数量
+  function getClickedItemColor(d) {
+    if (clickednode.indexOf(d.id) > -1)//如果被点击过，则再次点击会去掉点击后的颜色
+    {
+      ClickedItemnum--;
+      clickednode.splice( clickednode.indexOf(d.id),1 );//删掉该元素
+      setTestcaseButton();
+      return getItemColor(d);//变回原来的颜色
+    }
+    else {
+      clickednode.push(d.id);//添加被点击的结点id
+      ClickedItemnum++;
+      if(ClickedItemnum!=clickednode.length)//如果出现第一个元素为empty情况（选过结点后全取消选择会出现），造成长度和结点数不同
+      {clickednode.shift(); }//去掉为empty的第一项
+      setTestcaseButton();
+      return "#62d1fc";
+    }
+
+
+   // console.log(clickednode);
+
+
+  }
+
 
   function getItemColor(d) {
+
+    if (clickednode.indexOf(d.id) > -1)//如果被点击过，则显示被点击后的颜色
+    {
+      return "#62d1fc";
+    }
+
     if (!(d.labels[0] in itemColorMap)) {
       itemColorMap[d.labels[0]] = colorScale(d.labels[0]);
     }
@@ -546,10 +611,259 @@
 
   }
 
+  function generateGraph()//选取文件夹后生成解析报告文件，保存数据到图数据库
+  {
+
+  }
+
   function jumpteststep(){//跳转到测试步骤页面
 
     var url = "teststep.html?id="+propertiesID;//此处拼接内容
     window.location.href = url;
+  }
+
+
+
+  function ifinClickedNode(nodeid){//判断该node是否在clickednode中
+    for(var j=0;j<clickednode.length;j++) //一维数组里面每个元素数组可以包含的数量p，p也是一个变量
+    {
+     // console.log(j);
+      if(nodeid==clickednode[j])
+      {//console.log(nodeid+"yes");
+        return true;}
+    }
+    //console.log(nodeid+"no");
+    return false;
+  }
+  function  ifnotselfNode(neo4jNodeItm,number) {//判断node是否有指向自身的
+    if(neo4jNodeItm==clickednode[number])
+      return false;
+    else return true;
+  }
+
+  function reIdx(id)//重新编号
+  {
+    return clickednode.indexOf(id.toString())+1;
+  }
+  var vis=new Array();
+  var jdgmap=new Array();
+  for(var im=0;im<1000;im++)
+  {
+    jdgmap[im]=new Array();
+  }
+  var fg;
+  var jdgpath=new Array();
+  function arrayset(set)
+  {
+    if (set==1)
+    {
+      vis=new Array();
+      jdgmap=new Array();
+      for(var im=0;im<1000;im++)
+      {
+        jdgmap[im]=new Array();
+      }
+      jdgpath=new Array();
+      for(var im=0;im<1000;im++)
+      {
+        vis[im]=false;
+        jdgpath[im]=0;
+        for(var imm=0;imm<1000;imm++)
+        {
+          jdgmap[im][imm]=0;
+        }
+      }
+    }
+    else if(set==0)
+    {
+      vis.length=0;
+      jdgmap.length=0;
+      jdgpath.length=0;
+    }
+  }
+  function dfs(u,cnt)
+  {
+    console.log("in "+u+" "+cnt)
+    vis[u]=true;
+    jdgpath[cnt]=u;
+    if(cnt==clickednode.length)
+    {
+      fg=true;
+      console.log("true");
+      return;
+    }
+    for(var i=1;i<=clickednode.length&&!fg;i++)
+    {
+      console.log("vis["+i+"]="+vis[i]);
+      console.log("map["+u+"]["+i+"]="+jdgmap[u][i]);
+      if(!vis[i]&&jdgmap[u][i])
+      {
+        var cnn=cnt+1;
+        console.log("-in "+i+" "+cnn);
+        dfs(i,cnt+1);
+        console.log("-ou "+i+" "+cnn);
+        vis[i]=false;
+      }
+    }
+    console.log("ou "+u+" "+cnt);
+  }
+
+  function jdg(outArray,inArray)//判断函数
+  {
+    for(var k=0;k<clickednode.length;k++) //一维数组长度为i，i为变量，可以根据实际情况改变
+    {
+      for (var j = 0; j < 20; j++) //一维数组里面每个元素数组可以包含的数量p，p也是一个变量
+      {
+        //console.log("out["+k+"]["+j+"]="+outArray[k][j]);
+        if (outArray[k][j] != "-1")// ""
+        {
+          jdgmap[k+1][reIdx(outArray[k][j])] = 1;
+
+        }
+        if (inArray[k][j] != "-1")// "" 其实只根据outArray或inArray其中一个即可，因为互为对应
+        {
+          jdgmap[reIdx(inArray[k][j])][k+1] = 1;
+
+        }
+      }
+    }
+
+
+    for(var kk=0;kk<1000;kk++) //输出jdgmap
+    {
+      for(var jj=0;jj<1000;jj++)
+      {
+        if(jdgmap[kk][jj]==1)
+        {console.log("map["+kk+"]["+jj+"]=1");}
+      }
+    }
+
+    for(var i=1;i<=clickednode.length;i++)
+    {
+      vis.length=0;
+      vis=new Array();
+      for(var im=0;im<1000;im++)
+      {vis[im]=false;}
+      fg=false;
+      dfs(i,1);//从度数为1的点开始深搜
+
+      if(fg)
+      {
+        for(j=1;j<=clickednode.length;j++)
+        {
+          //console.log(jdgpath[j]);
+          console.log(clickednode[jdgpath[j]-1]);
+        }
+        break;
+      }
+    }
+    if(!fg){console.log("Impossible");}
+
+  }
+
+  function jumptestcase(){//跳转到测试用例页面
+
+    var num=0,numberin=0,numberout=0;
+    var outArray = new Array(); //先声明一维数组
+    var inArray = new Array();
+    for(var k=0;k<clickednode.length;k++) //一维数组长度为i，i为变量，可以根据实际情况改变
+    {
+      outArray[k]=new Array();  //声明二维，每一个一维数组里面的一个元素都是一个数组
+      inArray[k]=new Array();
+      for(var j=0;j<20;j++) //一维数组里面每个元素数组可以包含的数量p，p也是一个变量
+      {
+        outArray[k][j]="-1";    //这里将变量初始化，初始化为-1
+        inArray[k][j]="-1";
+      }
+    }
+/*    for(var k=0;k<clickednode.length;k++)//输出
+    {    for(var j=0;j<20;j++)   {   console.log(outArray[k][j])     }     console.log("-")
+    }*/
+    //开始生成clickednode点击的结点的出入度相连结点的二维数组，第i行表示第i个结点
+    for (num=0;num<clickednode.length;num++)
+    {
+     // console.log("num"+num);
+      var nodeID=clickednode[num];
+      var queryStr =  'MATCH (n) WHERE id(n)=' + nodeID + ' match (m) where (n)-[]->(m) return id(n),id(m)';//出，返回自身id是因为多次查询并行运行，不易直接获得自身结点id
+      var jqxhr = $.post(neo4jAPIURL, '{"statements":[{"statement":"' + queryStr + '"}]}',
+           function(data) {
+                  //console.log(data);
+                  var less=0;
+                  var neo4jDataItmArray = data.results[0].data;
+                  neo4jDataItmArray.forEach(function (dataItem,index) {
+                    var selfnodeid =dataItem.row[0];
+                    var neo4jNodeItm=dataItem.row[1];
+                 // console.log("number"+numberout);
+                  if( ifinClickedNode(neo4jNodeItm) && ifnotselfNode(neo4jNodeItm,clickednode.indexOf(selfnodeid.toString())))//只有包含在clickednode中的结点才加进去，且排除连接自己
+                  {var newindex=index-less;
+                   // outArray[num][newindex]=neo4jNodeItm;//不能直接用num，for和查询异步，num直接变为最终值
+                    //outArray[numberout][newindex]=neo4jNodeItm;//不能直接用numberout，虽然numberout值会在每次循环后自增，但还是由于异步原因造成值混乱
+                   // outArray[clickednode.indexOf(selfnodeid) ][newindex]=neo4jNodeItm;//根据自身节点在clickednode中的位置确定在outarray中的位置
+                    outArray[clickednode.indexOf(selfnodeid.toString())][newindex]=neo4jNodeItm;
+                  console.log("out["+clickednode.indexOf(selfnodeid.toString())+"]["+newindex+"]="+neo4jNodeItm);//需要.toString()
+                  }
+                  else {less++;}
+                });
+             numberout++;
+           }, 'json');
+    }
+    for (num=0;num<clickednode.length;num++)
+    {
+      // console.log("num"+num);
+      var nodeID=clickednode[num];
+      var queryStr =  'MATCH (n) WHERE id(n)=' + nodeID + ' match (m) where (n)<-[]-(m) return id(n),id(m)';//出
+      var jqxhr = $.post(neo4jAPIURL, '{"statements":[{"statement":"' + queryStr + '"}]}',
+              function(data) {
+                //console.log(data);
+                var less=0;
+                var neo4jDataItmArray = data.results[0].data;
+                neo4jDataItmArray.forEach(function (dataItem,index) {
+                  var selfnodeid =dataItem.row[0];//console.log(selfnodeid);
+                  var neo4jNodeItm=dataItem.row[1];
+                  //console.log("number"+numberin);
+                  if( ifinClickedNode(neo4jNodeItm)  && ifnotselfNode(neo4jNodeItm,clickednode.indexOf(selfnodeid.toString())) )
+                  { var newindex=index-less;
+                   inArray[clickednode.indexOf(selfnodeid.toString())][newindex]=neo4jNodeItm;//不能直接用num，for和查询异步，num直接变为最终值
+                  console.log("in["+clickednode.indexOf(selfnodeid.toString())+"]["+newindex+"]="+neo4jNodeItm);
+                  }
+                  else {less++;}
+                });
+                numberin++;
+              }, 'json');
+    }
+
+    //开始去除数组中不包含在clickednode中的结点,已通过ifinClickedNode判断并去除
+
+    //删掉结点连接自身的数据，已通过ifnotselfNode判断并去除
+
+    //重新编号，按照在clickednode中的顺序编号为1,2,3..，通过reIdx进行
+
+    //判断是否能生成测试用例，即Hamiltonian路径
+
+    //运行至此时，上述 jqxhr = $.post语句还未运行完
+    //暂时使用延时函数
+    arrayset(0);
+    arrayset(1);
+    setTimeout(function(){jdg(outArray,inArray) },500)
+
+    /*
+
+        sessionStorage.setItem('clickednode',clickednode.toString());
+        //console.log(clickednode.toString());
+        var url = "testcase.html"
+        window.location.href = url;*/
+  }
+
+  function openfilefloder()
+  {
+   // document.getElementById("fileUpload").change(function);//点击这个按钮
+    $("#fileUpload").click();
+  }
+
+
+  function GlobalConfig(abpath) {
+    sessionStorage.setItem('absopath',abpath);
+    console.log(abpath);
   }
 
 
@@ -574,9 +888,24 @@
     $('#btnBack').click(            function() {showDefaultGraph()}    );
     $('#btnPos').click(            function() {showPosinFullGraph()}    );
     $('#btnShowpath').click(            function() {jumpteststep()}   );
-    document.getElementById("btnShowpath").disabled=true;
+    $('#btnShowcase').click(            function() {jumptestcase()}   );
+
+    $('#btnOpen').click(            function() {openfilefloder()}   );
+    document.getElementById("btnShowpath").disabled=true;//没有选取结点时不可以点击
+    document.getElementById("btnShowcase").disabled=true;//没有选取多个结点时不可以点击
 
 
+    $("#fileUpload").change(function () {
+      //console.log($("#fileUpload")[0].files);
+      var fileflodername = $("#fileUpload")[0].files[0].webkitRelativePath;// 如1/1.txt
+      var index=fileflodername.indexOf("/");
+      fileflodername=fileflodername.substring(0,index);
+      //console.log(fileflodername);
+      $("#name").text(fileflodername);
+      generateGraph();
+      var absopath="D:\\IdeaProjects\\20201231104305_gov.hgm.hgmeap";//绝对路径，之后改为获取服务器文件夹地址
+      GlobalConfig(absopath);
+    });
 
 
     $('#chkboxCypherQry').change(function() {
