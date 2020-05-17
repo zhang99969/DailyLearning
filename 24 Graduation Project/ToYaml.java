@@ -12,6 +12,8 @@ import org.yaml.snakeyaml.Yaml;
 class Elements {
     String url,tag,id,name,text,instance,depth,valid,selected,xpath,ancestor,action;
     int x,y,width,height;
+    String combinedInfo;
+
 
     public String getUrl() {        return url;    }
     public void setUrl(String url) {        this.url = url;    }
@@ -45,6 +47,8 @@ class Elements {
     public void setWidth(int width) {        this.width = width;    }
     public int getHeight() {        return height;    }
     public void setHeight(int height) {        this.height = height;    }
+    public String getCombinedInfo() {        return combinedInfo;    }
+    public void setCombinedInfo(String combinedInfo) {        this.combinedInfo = combinedInfo;    }
     public String toString() {
         return "Elements [url:" + getUrl() + "|text:" + getText() + "|action:" + getAction() + "]";
     }
@@ -95,7 +99,7 @@ class ElementStore{
 
 public class ToYaml {
 
-    static String path="E:\\IdeaProjects\\NeoTest\\file\\";
+    static String path="D:\\IdeaProjects\\NeoTest\\file\\";
     static String testYml1=path+"1.yml";//结构完整、数据完整的yml文件
     static String testYml2=path+"2.yml";//结构完整、数据简略的yml文件
     static String testYml3=path+"3.yml";//结构不完整、数据简略的yml文件
@@ -422,13 +426,14 @@ public class ToYaml {
         int num=0;
 
         for(Elements mapce : mapCE.values()){//遍历ClickElment的map
-       //     System.out.println(mapce);
+            //     System.out.println(mapce);
             String ancestorCE =mapce.getAncestor();
             for(ElementStore mapes : mapES.values()){//遍历ElementStore的map
-       //         System.out.println(mapes);
+                //         System.out.println(mapes);
                 String ancestorES =mapes.getElement().getAncestor();
                 if(ancestorCE.equals(ancestorES))//两者的ances相同
                 {
+
                     mapout.put(num,mapes);
                     num++;
                     break;
@@ -439,16 +444,42 @@ public class ToYaml {
         return mapout;
     }
 
+    public static Map<Integer,ElementStore> getOrderFromClickElmentByCombinedInfoAndgetInfoFromElementStore(Map<Integer,Elements> mapCE,Map<Integer,ElementStore> mapES) {
+        Map<Integer,ElementStore> mapout = new  HashMap<>();
+        int num=0;
+
+        for(Elements mapce : mapCE.values()){//遍历ClickElment的map
+            //     System.out.println(mapce);
+            String CombinedInfoCE =mapce.getCombinedInfo();
+            for(ElementStore mapes : mapES.values()){//遍历ElementStore的map
+                //         System.out.println(mapes);
+                String InfoES =mapes.getElementStoreName();
+                if(CombinedInfoCE.equals(InfoES))//两者的Info相同
+                {
+                 //   System.out.println("命中");
+                    mapout.put(num,mapes);
+                    num++;
+                    break;
+                }
+            }
+        }
+
+        return mapout;
+    }
+
+
     public static void  printInfo(Map<Integer,ElementStore> map)
     {
         for(ElementStore map2 : map.values()){//遍历ClickElment的map
               //   System.out.println(map2.toString3()+"\n");
-            System.out.println(map2.getElement().getId());
+          //  System.out.println(map2.getElement().getId());
+            System.out.println(map2.getElementStoreName());
         }
 
     }
 
-    public static void  printCombinedInfo(Map<Integer,Elements> map)//拼接clickedElements中的信息从而与ElementStore的name比较
+
+    public static void  SetCombinedInfo(Map<Integer,Elements> map)//拼接clickedElements中的信息从而与ElementStore的name比较
     {
         String regEx="[\n`~!@#$%^&*()+=|{}':;',\\[\\].<>/?~！@#￥%……&*（）——+|{}（【】‘；：”“’。， 、？]";
         for(Elements map2 : map.values()){//遍历ClickElment的map
@@ -464,7 +495,8 @@ public class ToYaml {
                 combined=combined+".text="+text2;
             if(!map2.getName().isEmpty())
                 combined=combined+".name="+map2.getName();
-          //  System.out.println(combined);
+           //System.out.println(combined);
+            map2.setCombinedInfo(combined);
         }
 
     }
@@ -509,10 +541,16 @@ public class ToYaml {
         tp.connect();
         //并建立图结构的连接
         System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-    //    printInfo(map2);
-        printCombinedInfo(map);
-       // System.out.println(getOrderFromClickElmentAndgetInfoFromElementStore(map,map2));
-       // tp.addNodeWithElementStoreMap(getOrderFromClickElmentAndgetInfoFromElementStore(map,map2));
+        //printInfo(map2);
+
+        //如果需要对比合并后的信息则运行以下两行
+//        SetCombinedInfo(map);
+  //      tp.addNodeWithElementStoreMap(getOrderFromClickElmentByCombinedInfoAndgetInfoFromElementStore(map,map2));
+
+        //System.out.println(getOrderFromClickElmentAndgetInfoFromElementStore(map,map2));
+
+        //如果只对比Ancestor信息则运行以下一行
+       tp.addNodeWithElementStoreMap(getOrderFromClickElmentAndgetInfoFromElementStore(map,map2));
 
     }
 

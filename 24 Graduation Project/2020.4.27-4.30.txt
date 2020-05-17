@@ -1,0 +1,50 @@
+打开文件的方法
+1 var obj=new ActiveXObject("wscript.shell");
+                obj.Run(filename, 1, false );
+2  https://blog.csdn.net/u013970232/article/details/89146426
+var xhr = new XMLHttpRequest();
+            xhr.open("get", filename, true);
+            xhr.send();
+            xhr.onreadystatechange = function() {
+                if(xhr.readyState == 4 && xhr.status == 200) {
+                    console.log(xhr);
+                    console.log(xhr.responseText);
+                } else if(xhr.status == 404) {
+                    console.log(xhr.status);
+                }
+            };
+3 https://www.cnblogs.com/qiyongliang/p/3822931.html
+ var htmlobj=$.ajax({url:filename,async:false});
+            var temp=htmlobj.responseText;
+4   window.open(filenameChrome, null);
+问题：Not allowed to load local resource，使用Web Server for Chrome扩展
+问题：has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is...
+
+NeoTest代码和aitest中合并的代码区别
+NeoTest多了 合并信息的比对
+aitest多了 arraylist获取关系信息
+
+显示优化：结点name显示取=或_后的，对应的测试步骤页面的名字、图片路径名也修改成简化前的
+首页属性栏不再显示reqDom和resDom
+
+今日工作 20200427
+1. 图数据库转换成图结构时结点名字的可读性增强，页面属性栏中不再获取dom信息。
+2. 分析测试步骤，使用XObject、window和XMLHttpRequest等打开报告文件方法，显示文件信息和组件点击前后截图。
+明日计划
+可视化过程中选取图结构内多个结点的路径判断问题与多个参数传递问题的解决。
+问题总结
+未获取服务器数据前，针对浏览器中无法读取本地资源和跨域问题使用对应方法解决。
+
+
+今日工作 20200428
+1. 实现在可视化中选取图结构内多个结点的颜色重绘功能，根据数量识别是否可以生成测试用例
+2. 根据已点击的参数生成结点数组，跳转页面时传递参数据此生成测试用例页面所显示结点
+明日计划
+根据连通情况判断结点是否可以生成测试用例。
+
+
+今日工作 20200430
+1. 可视化图结构中选取单个与多个结点后测试用例与步骤的判断，尝试根据结点数组判断是否互相相连
+2. 测试用例页面显示出所选数量结点的指定信息，和简单图示表示。选取并阅读关于图数据库中使用中间表来映射图形关系结构的论文。
+明日计划
+查找判断选取结点是否相连的解决办法

@@ -3,7 +3,10 @@ import java.util.*;
 import java.util.Map;
 
 import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
+import org.neo4j.driver.v1.*;
+import static org.neo4j.driver.v1.Values.parameters;
 
 public class ToGraph {
 
@@ -133,20 +136,23 @@ public class ToGraph {
     }
 
     private static boolean creatNodeFromMapWithElementStoreMap(int num, ElementStore es){//添加一个节点到图中
-        Label label1;
-        label1 = Label.label("PageWithES");
+        Label label1 = Label.label("PageWithES");
         Node node1;
         String name= es.getElementStoreName();
+        boolean found;//是查询结果
         try (Transaction tx = graphDb.beginTx()) {
             ResourceIterator<Node> result = graphDb.findNodes(label1,"ElementStoreName",name);
             if (result.hasNext()){
                 System.out.println(name+"节点已经存在");
                 return false;
             }
+
             else{
+                int shortIndex=name.lastIndexOf("_")>name.lastIndexOf("=")?name.lastIndexOf("_"):name.lastIndexOf("=");
                 node1 = graphDb.createNode(label1);
                 node1.setProperty("Number",num);
                 //elementStoreMap
+                node1.setProperty("name",name.substring(shortIndex+1,name.length()));//为了在D3JS中显示节点名
                 node1.setProperty("ElementStoreName",name);
                 node1.setProperty("reqDom",es.getReqDom());
                 node1.setProperty("resDom",es.getResDom());
@@ -185,13 +191,14 @@ public class ToGraph {
     }
 
 
+
     private void creatRalationByNodeWithElementStoreMap(Map<Integer,ElementStore> map){//图中的节点按顺序连接
         Relationship relationship;
+        int CallNum=1;//访问的顺序
         try (Transaction tx = graphDb.beginTx()) {
             // 查询节点
             Label label = Label.label("PageWithES");
             Node nodeStart,nodeEnd;//关系两侧的节点
-
 
             for (int num=0; num<map.size()-1; num++) {
                 System.out.println("#########"+ map.get(num).getElementStoreName());
@@ -207,6 +214,10 @@ public class ToGraph {
                             if(rStart.equals( rEnd ))//是同一个关系，说明关系已存在
                             {
                                 hasRela=true;
+                                //因为关系已存在，所以访问的顺序和次数已经初始化过
+                                rStart.setProperty("CallNum", rStart.getProperty("CallNum")+String.valueOf(CallNum)+",");
+                                CallNum=CallNum+1;
+                                rStart.setProperty("CallTime", Integer.parseInt(String.valueOf(rStart.getProperty("CallTime")))+1);
                                 break;
                             }
                         }
@@ -219,9 +230,13 @@ public class ToGraph {
                 if(!hasRela){//判定
                     relationship = nodeStart.createRelationshipTo(nodeEnd, RelTypes.JUMPTOWITHES);
                     relationship.setProperty("JumpByWithES", "跳转到");
+                    relationship.setProperty("CallNum", String.valueOf(CallNum)+",");
+                    CallNum=CallNum+1;
+                    relationship.setProperty("CallTime", 1);
                     System.out.println(nodeStart.getProperty("ElementStoreName") + "-----→" + nodeEnd.getProperty("ElementStoreName") + "已连接");
                 }
                 else{
+
                     System.out.println(nodeStart.getProperty("ElementStoreName") + "→" + nodeEnd.getProperty("ElementStoreName") + "的连接已经存在");
                     //return false;
                 }
@@ -255,6 +270,87 @@ public class ToGraph {
         }
         creatRalationByNodeWithElementStoreMap(map);//创建节点间关系
     }
+
+    public void FindPageWithES(String attribute, String name) {//查询结点
+        try(Transaction tx = graphDb.beginTx()){
+            //通过Cypher查询获得结果
+            StringBuilder sb = new StringBuilder();
+
+            sb.append("MATCH (n:PageWithES) where n.");
+            sb.append(attribute);
+            sb.append(" contains \'");
+            sb.append(name);
+            sb.append("\' return n");
+            //match(n:PageWithES) where n.ElementStoreName Contains 'acti' return n
+
+            /*sb.append("MATCH (n:PageWithES{");
+            sb.append(attribute);
+            sb.append(":\'");
+            sb.append(name);
+            sb.append("\'}) return n");*/
+            //match(n:PageWithES{ElementStoreName:'Activity'}) return n; //这种查询方法必须把属性的所有内容输入全
+            //  match(n{name:'Tom Hanks'}) return n;
+            Result result = graphDb.execute(sb.toString());
+            //遍历结果
+            while(result.hasNext()){
+                Node pp = (Node) result.next().get("n");
+                System.out.println(pp.getId() + " : " + pp.getProperty("ElementStoreName"));
+            }
+            tx.success();
+            System.out.println("Done successfully");
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            //graphDb.shutdown();    //关闭数据库
+        }
+    }
+
+    public void FindPageWithES(String attribute,String chars, int num) {//查询结点
+        try(Transaction tx = graphDb.beginTx()){
+            //通过Cypher查询获得结果
+            StringBuilder sb = new StringBuilder();
+
+            sb.append("MATCH (n:PageWithES) where n.");
+            sb.append(attribute);
+            sb.append(chars);
+            sb.append(num);
+            sb.append(" return n");
+            Result result = graphDb.execute(sb.toString());
+            //遍历结果
+            while(result.hasNext()){
+                Node pp = (Node) result.next().get("n");
+                System.out.println(pp.getId() + " : " + pp.getProperty("ElementStoreName"));
+            }
+            tx.success();
+            System.out.println("Done successfully");
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+           // graphDb.shutdown();    //关闭数据库
+        }
+    }
+    public void FindJUMPTOWITHES(String attribute, String name) {//查询关系
+        try(Transaction tx = graphDb.beginTx()){
+            StringBuilder sb = new StringBuilder();
+
+            sb.append("MATCH (n:PageWithES)-[r:JUMPTOWITHES]-() where r.");
+            sb.append(attribute);
+            sb.append(">");
+            sb.append(name);
+            sb.append(" return distinct n");//去重
+            //MATCH (n:PageWithES)-[r:JUMPTOWITHES]-() where r.CallTime>1 return r //查询遍历次数大于1的过程 也可以return n
+
+            Result result = graphDb.execute(sb.toString());
+            while(result.hasNext()){
+                Node pp = (Node) result.next().get("n");
+                System.out.println(pp.getId() + " : " + pp.getProperty("ElementStoreName"));
+            }
+            tx.success();
+            System.out.println("Done successfully");
+        } catch (Exception e) {     e.printStackTrace();
+        } finally {      }
+    }
+
 
     @SuppressWarnings("unused")
     private static void DEMOaddData() {
@@ -367,6 +463,48 @@ public class ToGraph {
         }
     }
 
+    public void testFind() {//测试查询功能//from https://blog.csdn.net/yitengtongweishi/article/details/80481099
+
+            try(Transaction tx = graphDb.beginTx()){
+                //通过Cypher查询获得结果
+                StringBuilder sb = new StringBuilder();
+                sb.append("MATCH (p:Page{UrlName:\"Steps待你回答\"})-[:JUMPTO]->(p1:Page)-[:JUMPTO]->(p2:Page) return p2");
+              //  sb.append("RETURN p");
+                Result result = graphDb.execute(sb.toString());
+                //遍历结果
+                while(result.hasNext()){
+                    Node pp = (Node) result.next().get("p2");
+                    System.out.println(pp.getId() + " : " + pp.getProperty("UrlName"));
+                }
+                tx.success();
+                System.out.println("Done successfully");
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                graphDb.shutdown();    //关闭数据库
+            }
+    }
+
+
+    public void testDriver()
+    {
+            Driver driver = GraphDatabase.driver( "bolt://localhost:7687", AuthTokens.basic( "neo4j", "" ) );
+            Session session = driver.session();
+            session.run( "CREATE (a:Person {name: {name}, title: {title}})",
+                    parameters( "name", "Arthur001", "title", "King001" ) );
+
+            StatementResult result = session.run( "MATCH (a:Person) WHERE a.name = {name} " +
+                            "RETURN a.name AS name, a.title AS title",
+                    parameters( "name", "Arthur001" ) );
+            while ( result.hasNext() )
+            {
+                Record record = result.next();
+                System.out.println( record.get( "title" ).asString() + " " + record.get( "name" ).asString() );
+            }
+            session.close();
+            driver.close();
+    }
+
 
     public static void main(String[] args) {
 
@@ -375,9 +513,14 @@ public class ToGraph {
         //DEMOaddData();
         //DEMOqueryAndUpdate();
         // ();
-        tp.testConn();
+       // tp.testConn();
+       // tp.testFind();
 
+       // tp.FindPageWithES("ElementStoreName", "acti");//查询结点名
+       // tp.FindPageWithES("Elements_width", ">",150);//查询结点int型属性 // x,y,width,height,clickedIndex
+       // tp.FindJUMPTOWITHES("CallTime", "1");//查询跳转关系
 
+        graphDb.shutdown();
     }
 
 }

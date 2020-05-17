@@ -208,15 +208,16 @@
                     <div id="domBox2"></div>
                 </div>
                 <div id="table-div-screenshot" style="display:inline;padding-bottom: 15px"  class="col col-12 col-md-12 " >
-
                     <div class="col col-4 col-md-4 form-inline" style="display:inline">
                         <img id="image"src="" />
                     </div>
                     <div class="col col-4 col-md-4 form-inline"style="display:inline">
                         <img id="image2"src="" />
                     </div>
-
-
+                </div>
+                <div id="table-div-Log" style="display:none;padding-bottom: 15px"  class="col col-12 col-md-12 " >
+                    <div id="LogBox" style="white-space:pre-wrap;word-break:break-all; word-wrap:break-word;"></div>
+                    <div id="LogBoxCache" style="display:none;" ></div>
                 </div>
             </div>
         </div>
@@ -276,6 +277,8 @@
         document.getElementById("table-div-resDom").style.display="none";
         document.getElementById("btnClose").style.display="";
         document.getElementById("table-div-screenshot").style.display="none";
+        document.getElementById("table-div-Log").style.display="none";
+
     }
 
     function showres(){//显示reqDom框，其余隐藏
@@ -284,6 +287,8 @@
         document.getElementById("table-div-resDom").style.display="";
         document.getElementById("btnClose").style.display="";
         document.getElementById("table-div-screenshot").style.display="none";
+        document.getElementById("table-div-Log").style.display="none";
+
     }
     function showClose(){//隐藏Dom框，显示信息表格
         document.getElementById("table-div").style.display="";
@@ -291,6 +296,8 @@
         document.getElementById("table-div-resDom").style.display="none";
         document.getElementById("btnClose").style.display="none";
         document.getElementById("table-div-screenshot").style.display="none";
+        document.getElementById("table-div-Log").style.display="none";
+
     }
 
 
@@ -301,20 +308,51 @@
         var neo4jPassword = 'password';
 
         //######################### variable #########################
-        var nodeItemMap = {};
         var id;
-        var nodeItem;
         var neo4jNodeItm;
         var nodeName;
         var nodeIndex;
 
         $("td,th").addClass("text-center");
-
-
+        var ifgetLog=false;
         function showLog(){
+/*
             var htmlobj=$.ajax({url:"http://127.0.0.1:8887/IdeaProjects/20201231104305_gov.hgm.hgmeap/appcrawler.log",async:false});
             var temp=htmlobj.responseText;
+            console.log(temp);
+*/
+            document.getElementById("table-div").style.display="none";
+            document.getElementById("table-div-reqDom").style.display="none";
+            document.getElementById("table-div-resDom").style.display="none";
+            document.getElementById("btnClose").style.display="";
+            document.getElementById("table-div-screenshot").style.display="none";
+            document.getElementById("table-div-Log").style.display="";
+
+            if(!ifgetLog){
+                var filelog="/d3js-neo4j-example-master/appcrawler.log"; //暂时使用，UTF-8
+                //$("#LogBox").load(filelog,LogSubstring());
+                //LogBoxCache
+                $("#LogBoxCache").load(filelog,function(response){
+                    var filecontent=response;
+                    console.log(filecontent);
+                   // console.log(filecontent);
+                  //  console.log( filecontent.lastIndexOf("\n",filecontent.indexOf("current index = 11")));  //两个index间为该结点遍历时对应的log信息
+                    //console.log( filecontent.indexOf("\n",filecontent.indexOf("current index = 12")));
+                    var indexstart="current index = "+nodeIndex;
+                    var indexend="current index = "+(nodeIndex+1).toString();
+                    filecontent=filecontent.substring(filecontent.lastIndexOf("\n",filecontent.indexOf(indexstart)),filecontent.lastIndexOf("\n",filecontent.indexOf(indexend)));
+
+                    $('#LogBox').append($('<p></p>').text(filecontent));
+                  //多次显示问题解决
+                    ifgetLog=true;
+                });
+                }
+
+
         }
+
+
+
 
         function showscreenshot() {//显示两张截图
 
@@ -323,6 +361,7 @@
             document.getElementById("table-div-resDom").style.display="none";
             document.getElementById("btnClose").style.display="";
             document.getElementById("table-div-screenshot").style.display="";
+            document.getElementById("table-div-Log").style.display="none";
 
             //参考showDomFile的说明
            var filenameChrome="http://127.0.0.1:8887"+"/IdeaProjects/20201231104305_gov.hgm.hgmeap"+"/"+nodeIndex+"_"+nodeName+".click.png";
@@ -417,6 +456,7 @@
 
                             $('#domBox').append($('<p></p>').text(neo4jNodeItm.properties.reqDom));
                             $('#domBox2').append($('<p></p>').text(neo4jNodeItm.properties.resDom));
+
 
                             console.log( sessionStorage.getItem('absopath'));
                             /*if (dataItem.graph.nodes != null && dataItem.graph.nodes.length > 0) {//整个if都可以删掉了

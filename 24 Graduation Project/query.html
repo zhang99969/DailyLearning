@@ -128,6 +128,7 @@
   var nodeItemMap = {};
   var linkItemMap = {};
   var clickednode=[];
+  var nodelist=[];
 
   var d3Simulation = null;
   var circles;
@@ -683,29 +684,29 @@
   }
   function dfs(u,cnt)
   {
-    console.log("in "+u+" "+cnt)
+ //   console.log("in "+u+" "+cnt)
     vis[u]=true;
     jdgpath[cnt]=u;
     if(cnt==clickednode.length)
     {
       fg=true;
-      console.log("true");
+  //    console.log("true");
       return;
     }
     for(var i=1;i<=clickednode.length&&!fg;i++)
     {
-      console.log("vis["+i+"]="+vis[i]);
-      console.log("map["+u+"]["+i+"]="+jdgmap[u][i]);
+    //  console.log("vis["+i+"]="+vis[i]);
+   //   console.log("map["+u+"]["+i+"]="+jdgmap[u][i]);
       if(!vis[i]&&jdgmap[u][i])
       {
         var cnn=cnt+1;
-        console.log("-in "+i+" "+cnn);
+     //   console.log("-in "+i+" "+cnn);
         dfs(i,cnt+1);
-        console.log("-ou "+i+" "+cnn);
+     //   console.log("-ou "+i+" "+cnn);
         vis[i]=false;
       }
     }
-    console.log("ou "+u+" "+cnt);
+ //   console.log("ou "+u+" "+cnt);
   }
 
   function jdg(outArray,inArray)//判断函数
@@ -718,25 +719,22 @@
         if (outArray[k][j] != "-1")// ""
         {
           jdgmap[k+1][reIdx(outArray[k][j])] = 1;
-
         }
         if (inArray[k][j] != "-1")// "" 其实只根据outArray或inArray其中一个即可，因为互为对应
         {
           jdgmap[reIdx(inArray[k][j])][k+1] = 1;
-
         }
       }
     }
 
-
-    for(var kk=0;kk<1000;kk++) //输出jdgmap
+  /*  for(var kk=0;kk<1000;kk++) //输出jdgmap
     {
       for(var jj=0;jj<1000;jj++)
       {
         if(jdgmap[kk][jj]==1)
         {console.log("map["+kk+"]["+jj+"]=1");}
       }
-    }
+    }*/
 
     for(var i=1;i<=clickednode.length;i++)
     {
@@ -749,15 +747,24 @@
 
       if(fg)
       {
+        nodelist.length=0;//清空
         for(j=1;j<=clickednode.length;j++)
         {
           //console.log(jdgpath[j]);
           console.log(clickednode[jdgpath[j]-1]);
+          nodelist.push(clickednode[jdgpath[j]-1]);
         }
+       // sessionStorage.setItem('nodelist',nodelist.toString());
+        sessionStorage.setItem('nodelist',nodelist);
+        //console.log(clickednode.toString());
+        var url = "testcase.html"
+        window.location.href = url;
         break;
       }
     }
-    if(!fg){console.log("Impossible");}
+    if(!fg){console.log("Impossible");
+      promptAlert($('#graphContainer'), '错误：选择的结点不能生成测试用例，请选择连续的结点作为路径 !', true);
+    }
 
   }
 
@@ -800,7 +807,7 @@
                     //outArray[numberout][newindex]=neo4jNodeItm;//不能直接用numberout，虽然numberout值会在每次循环后自增，但还是由于异步原因造成值混乱
                    // outArray[clickednode.indexOf(selfnodeid) ][newindex]=neo4jNodeItm;//根据自身节点在clickednode中的位置确定在outarray中的位置
                     outArray[clickednode.indexOf(selfnodeid.toString())][newindex]=neo4jNodeItm;
-                  console.log("out["+clickednode.indexOf(selfnodeid.toString())+"]["+newindex+"]="+neo4jNodeItm);//需要.toString()
+                  //console.log("out["+clickednode.indexOf(selfnodeid.toString())+"]["+newindex+"]="+neo4jNodeItm);//需要.toString()
                   }
                   else {less++;}
                 });
@@ -824,7 +831,7 @@
                   if( ifinClickedNode(neo4jNodeItm)  && ifnotselfNode(neo4jNodeItm,clickednode.indexOf(selfnodeid.toString())) )
                   { var newindex=index-less;
                    inArray[clickednode.indexOf(selfnodeid.toString())][newindex]=neo4jNodeItm;//不能直接用num，for和查询异步，num直接变为最终值
-                  console.log("in["+clickednode.indexOf(selfnodeid.toString())+"]["+newindex+"]="+neo4jNodeItm);
+                  //console.log("in["+clickednode.indexOf(selfnodeid.toString())+"]["+newindex+"]="+neo4jNodeItm);
                   }
                   else {less++;}
                 });
@@ -838,18 +845,17 @@
 
     //重新编号，按照在clickednode中的顺序编号为1,2,3..，通过reIdx进行
 
-    //判断是否能生成测试用例，即Hamiltonian路径
+    //判断是否能生成测试用例，即Hamiltonian路径，调用jdg判断函数
 
     //运行至此时，上述 jqxhr = $.post语句还未运行完
     //暂时使用延时函数
     arrayset(0);
     arrayset(1);
-    setTimeout(function(){jdg(outArray,inArray) },500)
+    setTimeout(function(){jdg(outArray,inArray) },500);//延时等待
+    //如果能生成则跳转，不能则显示提示
 
     /*
-
         sessionStorage.setItem('clickednode',clickednode.toString());
-        //console.log(clickednode.toString());
         var url = "testcase.html"
         window.location.href = url;*/
   }
