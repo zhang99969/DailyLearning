@@ -91,7 +91,7 @@
     <div class="col col-11 col-md-11" style="padding-right:0px" >
       <div id="propertiesBox"></div>
     </div>
-    <div class="col col-1 col-md-1 form-inline">111
+    <div class="col col-1 col-md-1 form-inline">
     </div>
   </div>
 </div>
@@ -366,9 +366,9 @@
                       .attr('stroke', function(d) {return getColorDarker("#62d1fc");});
             })
             .on('dblclick', function(d) {//双击显示与其相连的
-              d.fx = d.x;
+             /* d.fx = d.x;
               d.fy = d.y;
-              submitQuery(d.id);
+              submitQuery(d.id);*/
             })
             .merge(circles);
 
@@ -401,11 +401,12 @@
             });
   }
 
-
+  var plusnum=0;
+  var clickednodeplus=false;//是否需要添加ClickedItemnum的数量，在有搜索结果时需要添加
   function submitQuery(nodeID) {
+    plusnum=0;
     removeAlert();
     document.getElementById("btnPos").disabled=false;
-
     var queryStr = null;
     if (nodeID == null || !nodeID) {
       queryStr = $.trim($('#queryText').val());
@@ -416,8 +417,10 @@
       if ($('#chkboxCypherQry:checked').val() != 1)//未勾选
       {queryStr = 'match (n) where n.name =~ \'(?i).*' + queryStr + '.*\' return n';
       }
+    //  clickednodeplus=true;不能放在这里，因为查看全图的时候queryText中被悄悄赋值成了搜索语句
     } else
     {queryStr = 'match (n)-[j]-(k) where id(n) = ' + nodeID + ' return n,j,k';
+
     }
     stopSimulation();
 
@@ -462,7 +465,13 @@
 
                 promptAlert($('#resultNumContainer'), '共有' + Object.keys(nodeItemMap).length + '个结点，'+Object.keys(linkItemMap).length+'条关系', false);
                 //console.log('nodeItemMap.size:' + Object.keys(nodeItemMap).length+'linkItemMap.size:' + Object.keys(linkItemMap).length);
-
+                if(true)//不管是不是搜索结果，暂时都保存
+                {
+                  plusnum=plusnum+Object.keys(nodeItemMap).length;//数量的添加
+/*                  ClickedItemnum=ClickedItemnum+
+                  console.log("ClickedItemnum+")
+                  clickednodeplus=false;*/
+                }
 
                 updateGraph();
                 clearProperties();//搜索后清空属性栏内的信息
@@ -472,7 +481,7 @@
               //also update graph when empty
               updateGraph();
               clearProperties();//搜索后清空属性栏内的信息
-              promptAlert($('#graphContainer'), '抱歉，没有找到相关结点和关系 !', false);
+              promptAlert($('#graphContainer'), '抱歉，没有找到相关结点和关系 !', true);
             }, 'json');
 
     jqxhr.fail(function(data) {
@@ -497,12 +506,21 @@
 
   var ClickedItemnum=0;//被点击的结点数量
   function getClickedItemColor(d) {
+
+    if(document.getElementById("btnPos").disabled==false)
+    {
+      return getItemColor(d);//在搜索结果页面不可以点击结点，还是原来颜色。若返回空则圆形会在点击时变成黑色
+    }
+
+
     if (clickednode.indexOf(d.id) > -1)//如果被点击过，则再次点击会去掉点击后的颜色
     {
       ClickedItemnum--;
       clickednode.splice( clickednode.indexOf(d.id),1 );//删掉该元素
       setTestcaseButton();
+      console.log("删除该结点")
       return getItemColor(d);//变回原来的颜色
+
     }
     else {
       clickednode.push(d.id);//添加被点击的结点id
@@ -524,9 +542,14 @@
 
     if (clickednode.indexOf(d.id) > -1)//如果被点击过，则显示被点击后的颜色
     {
+  //    console.log("被点击过")
       return "#62d1fc";
     }
+    else
+    {
+  //    console.log("没被点击过")
 
+    }
     if (!(d.labels[0] in itemColorMap)) {
       itemColorMap[d.labels[0]] = colorScale(d.labels[0]);
     }
@@ -553,9 +576,18 @@
       }
     });
     }
-    if(!flag){     itemColorMap[d.labels[0]]="#62d1fc";    }
+    if(!flag){
+      itemColorMap[d.labels[0]]="#62d1fc";
+      clickednode.push(d.id);//通过加入到clicknode中，暂时解决点击 显示在原图中位置 后不可被去掉点击、无法分析测试用例的问题
+    //  circlesinResult.splice( circlesinResult.indexOf(d.id),1 );
+      //_groups[""0""][2].__data__.id
+      //_groups[""0""][""0""]
+
+      console.log(circlesinResult._groups[0][0])
+    }
     else    {      itemColorMap[d.labels[0]] = colorScale(d.labels[0]);//其余颜色不变
     }
+
    // console.log(itemColorMap[d.labels[0]]);
     return itemColorMap[d.labels[0]];
 /*
@@ -593,8 +625,10 @@
 
   function showPosinFullGraph()
   {
+    ClickedItemnum=ClickedItemnum+plusnum;//可以点击 显示在原图中的位置 按钮，则可以将之前保存的plusnum添加
     //console.log("getPosCir");
-    circlesinResult = d3.select('#circle-group').selectAll('circle');
+    circlesinResult = d3.select('#circle-group').selectAll('circle');//将搜索结果保存到circlesinResult中
+   // clickednodeplus=true;
     //console.log(circles);
     showDefaultGraph();//显示全图
 
@@ -607,6 +641,7 @@
       var onClickFunc = d3.select(this).on("mouseout");
       onClickFunc.apply(this, [d, i]);//再把所有鼠标滑过的划走，不然还是亮色
     });
+    circlesinResult=null;//清空，暂时解决点击 显示在原图中位置 后不可被去掉点击、无法分析测试用例的问题
 
 
 
@@ -718,7 +753,7 @@
         //console.log("out["+k+"]["+j+"]="+outArray[k][j]);
         if (outArray[k][j] != "-1")// ""
         {
-          jdgmap[k+1][reIdx(outArray[k][j])] = 1;
+          jdgmap[k+1][reIdx(outArray[k][j])] = 1;//1代表连通
         }
         if (inArray[k][j] != "-1")// "" 其实只根据outArray或inArray其中一个即可，因为互为对应
         {
@@ -754,9 +789,9 @@
           console.log(clickednode[jdgpath[j]-1]);
           nodelist.push(clickednode[jdgpath[j]-1]);
         }
-       // sessionStorage.setItem('nodelist',nodelist.toString());
-        sessionStorage.setItem('nodelist',nodelist);
-        //console.log(clickednode.toString());
+        //  sessionStorage.setItem('nodelist',nodelist);
+       sessionStorage.setItem('nodelist',nodelist.toString());
+      //  console.log(clickednode.toString());
         var url = "testcase.html"
         window.location.href = url;
         break;
@@ -807,11 +842,11 @@
                     //outArray[numberout][newindex]=neo4jNodeItm;//不能直接用numberout，虽然numberout值会在每次循环后自增，但还是由于异步原因造成值混乱
                    // outArray[clickednode.indexOf(selfnodeid) ][newindex]=neo4jNodeItm;//根据自身节点在clickednode中的位置确定在outarray中的位置
                     outArray[clickednode.indexOf(selfnodeid.toString())][newindex]=neo4jNodeItm;
-                  //console.log("out["+clickednode.indexOf(selfnodeid.toString())+"]["+newindex+"]="+neo4jNodeItm);//需要.toString()
+                 // console.log("out["+clickednode.indexOf(selfnodeid.toString())+"]["+newindex+"]="+neo4jNodeItm);//需要.toString()
                   }
                   else {less++;}
                 });
-             numberout++;
+             numberout++;//没有用上，实际上也不是真正的出度数量值
            }, 'json');
     }
     for (num=0;num<clickednode.length;num++)
@@ -872,6 +907,11 @@
     console.log(abpath);
   }
 
+  function solveTestcase(){
+    var url = "testcasenum.html";
+    window.location.href = url;
+
+  }
 
   //Page Init
   $(function() {
@@ -895,8 +935,10 @@
     $('#btnPos').click(            function() {showPosinFullGraph()}    );
     $('#btnShowpath').click(            function() {jumpteststep()}   );
     $('#btnShowcase').click(            function() {jumptestcase()}   );
-
     $('#btnOpen').click(            function() {openfilefloder()}   );
+    $('#btnNum').click(            function() {solveTestcase()}   );
+
+
     document.getElementById("btnShowpath").disabled=true;//没有选取结点时不可以点击
     document.getElementById("btnShowcase").disabled=true;//没有选取多个结点时不可以点击
 

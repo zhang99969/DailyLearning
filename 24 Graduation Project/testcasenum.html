@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>D3js test step page</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/font-awesome.min.css">
+    <!-- Custom styles for this template -->
+
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row" style="height:70px; margin-bottom: 15px"; >
+        <div class="col col-10 col-md-10 form-inline" style="background-color:lavender;"><h1>测试用例数量</h1></div>
+        <div class="col col-1 col-md-1 form-inline" style="background-color:lavender;">
+            <a href="query.html"><button type="button" class="btn btn-outline-primary" id="btnHome" style="background-color: white">
+                <i class="fa fa-home" aria-hidden="true"></i>
+            </button></a>
+        </div>
+        <div class="col col-1 col-md-1 form-inline" style="background-color:lavender;">
+            <a href="javascript:history.back(-1)"> <button type="button" class="btn btn-outline-primary" id="btnBack" style="background-color: white;">
+                <i class="fa fa-backward" aria-hidden="true"></i>
+            </button></a>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="row" style="margin-left: 30px;margin-right: 50px" >
+        <div class="col col-9 col-md-9 form-inline"><h5><div id="node">共 个测试用例，有</div></h5></div>
+        <div class="col col-3 col-md-3 form-inline" style="position: relative;">
+        <button type="button" class="btn btn-outline-primary btn-sm" id="btnRefresh" style="position:absolute;right:0px;float:right;width:150px" >
+            <i class="fa fa-refresh" aria-hidden="true"></i> 手动刷新结果
+        </button>
+        </div>
+    </div>
+
+    <hr  />
+
+    <div id="nodegraph" style="margin-left: 30px;margin-right: 50px">    </div>
+
+
+</div>
+
+
+
+<!-- jQuery first, then Popper.js, then Bootstrap JS -->
+
+<script src="js/jquery-3.3.1.min.js"></script>
+<script src="js/jquery.params.js"></script>
+<script src="js/popper.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="js/d3.v5.min.js"></script>
+<script src="js/d3js-example-neo4j.js"></script>
+<script type="text/javascript">
+    "use strict";
+    var testcasenum=20;//可以查询到的数量限制
+    var neo4jAPIURL = 'http://localhost:7474/db/data/transaction/commit';
+    var TCnum_nodelist = new Array();//TestCaseNum
+    var TCnum_nodenamelist = new Array();
+    for(var k=0;k<testcasenum;k++)
+    {
+        TCnum_nodelist[k]=new Array();
+        TCnum_nodenamelist[k]=new Array();
+
+        for(var j=0;j<20;j++)
+        {
+            TCnum_nodelist[k][j]=-1;
+            TCnum_nodenamelist[k][j]=-1;
+        }
+    }
+
+    function showteststep()
+    {
+    //console.log(this.value)
+        var url = "teststep.html?id="+this.value;//此处拼接内容
+        window.location.href = url;
+    }
+
+    function showtestcase()
+    {
+        var rownum = this.id;
+        rownum=rownum.toString().substring(3);//通过按钮的id编号获取TCnum_nodelist所在行数
+        console.log(rownum);
+        console.log(TCnum_nodelist[rownum]);
+
+        var newnodelist=[];
+       //newnodelist.length=0;
+        for(var i=0;TCnum_nodelist[rownum][i]!=-1;i++)
+        {newnodelist.push(TCnum_nodelist[rownum][i]);}//转换
+        sessionStorage.setItem('nodelist',newnodelist);//保存，在testcase页面读取
+        console.log(newnodelist);
+        var url = "testcase.html";
+        window.location.href = url;
+    }
+
+
+    function setBtnBottomName(nodenamelist,k)//设置每个按钮下的名字
+    {
+
+        var div = document.createElement('div');
+        div.style.cssText ="margin-left: 0px;margin-right: 50px;font-size: 1px";
+
+        for(var i=0;nodenamelist[i]!=-1;i++)//结点 测试用例图示的生成与展示
+        {
+            var op = document.createElement("input");
+            op.type = "button";
+            op.value = nodenamelist[i];
+            op.style.cssText = "padding:0px;width: 100px;background:transparent;border-width:0px;outline:none;";
+            div.appendChild(op);
+            document.getElementById("nodegraph").appendChild(div);
+            op = null;
+        }
+    }
+
+    var iffirstline=true;
+
+    function setButtons(nodelist,k){
+
+        var nodeList = nodelist;
+        var div2 = document.createElement('div');
+        var nodenum=k+1;
+        div2.innerText="("+nodenum+") ";//每项前面的数字编号
+        div2.style.color="#007BFF";
+        var div = document.createElement('div');
+        div2.appendChild(div);
+        if(iffirstline)
+        {
+        div.style.cssText ="margin-left:15px;padding-top:0px";
+        iffirstline=false;//第一行按钮上方去掉空隙
+        }
+        else
+        {
+            div.style.cssText ="margin-left:15px;padding-top:0px";//原本是20px，添加序号功能后就不需要了
+        }
+        var flagbtnset=false;
+
+        for(var i=0;nodeList[i]!=-1;i++)//结点 测试用例图示的生成与展示
+        {
+
+            //使用DOM的创建元素方法
+            var o=document.createElement("input");
+            o.type = "button" ;
+            o.value = nodeList[i];
+            o.className="btn btn-outline-primary btn-sm";//
+            var left=53+i*100;
+            o.style.cssText ="left:"+left+"px;width: 70px;height: 70px;border-radius:50%";//隔开
+            o.addEventListener("click",showteststep);
+            //document.body.appendChild(o);
+            div.appendChild(o);
+           // document.getElementById("nodegraph").appendChild(o);
+            o = null;//及时解除不再使用的变量引用,即将其赋值为 null;
+
+            if(nodeList[i+1]!=-1) {//显示每个结点按钮右侧的箭头
+                var arrow = document.createElement("input");
+                arrow.type = "button";
+                arrow.value = "→";
+                arrow.className = "btn btn-outline-primary btn-sm";//
+                var left2 = 123 + i * 100;
+                arrow.style.cssText = "left:" + left2 + "px;width: 30px;height: 30px;background-color:Transparent;border-style: none;outline:none;";//隔开
+                div.appendChild(arrow);
+                //document.getElementById("nodegraph").appendChild(arrow);
+                //document.body.appendChild(arrow);
+                arrow = null;
+            }
+            else if(flagbtnset!=true)//分析测试用例按钮
+            {
+                var o=document.createElement("input");
+                o.type = "button" ;
+                o.value = "分析测试用例";
+                o.id="btn"+k; //传递k值从而获取 需要分析的测试用例 在nodelist的行数
+                o.className="btn btn-outline-primary btn-sm";//
+                o.style.cssText ="float:right;margin-top:20px";
+                o.addEventListener("click",showtestcase);
+                div.appendChild(o);
+                o = null;
+                flagbtnset=true;
+            }
+        }
+        document.getElementById("nodegraph").appendChild(div2);
+    }
+
+
+    function dataSave()//跳转到其他页面前保存TCnum_nodelist和TCnum_nodenamelist数据
+    {
+        document.getElementById("node").innerText="共"+k+"个测试用例，有";
+
+        sessionStorage.setItem('TCnum_nodelist',TCnum_nodelist);
+        sessionStorage.setItem('TCnum_nodenamelist',TCnum_nodenamelist);//
+
+        console.log(TCnum_nodelist);
+
+    }
+
+    function reFresh()//刷新
+    {
+        //sessionStorage.setItem('TCnum_nodelist', "");//只把第一项清空了
+        sessionStorage.removeItem('TCnum_nodelist');
+        sessionStorage.removeItem('TCnum_nodenamelist'); //清空，初始化时获取不到TCnum_nodelist和TCnum_nodenamelist信息后会重新查询
+        window.location.reload();
+    }
+
+
+
+    function submitQuery(clickedIndex) {
+        var queryStr =  'MATCH p=(:PageWithES{clickedIndex:' + clickedIndex + '})-[*2..8]->(b:PageWithES) UNWIND NODES(p) AS n WITH p,b, SIZE(COLLECT(DISTINCT n)) AS testLength WHERE testLength = LENGTH(p)+1 RETURN p ORDER BY length(p) limit '+testcasenum;
+        // var queryStr =  'MATCH p=(a:PageWithES)-[*2..8]->(b:PageWithES) Where a.clickedIndex=' + clickedIndex + ' UNWIND NODES(p) AS n WITH p, SIZE(COLLECT(DISTINCT n)) AS testLength WHERE testLength = LENGTH(p)+1 RETURN p ORDER BY length(p) limit 20'
+        var jqxhr = $.post(neo4jAPIURL, '{"statements":[{"statement":"' + queryStr + '", "resultDataContents":["row"]}]}',
+            function(data) {
+                console.log(data);
+                if (data.results != null && data.results.length > 0 && data.results[0].data != null && data.results[0].data.length > 0) {
+                    var neo4jDataItmArray = data.results[0].data;
+                    k=0;
+                    neo4jDataItmArray.forEach(dataItem => {
+                        j=0;
+                      // console.log("______");
+                        var neo4jNodeItm=dataItem.meta[0];
+                        //console.log(neo4jNodeItm);
+                        neo4jNodeItm.forEach(function (meta,index) {
+                          //  console.log(meta.id);
+                            if(index%2==0){//不存储，跳过关系信息
+                                TCnum_nodelist[k][j]=meta.id;
+                            j++;
+                            }
+                        });
+                        j=0;
+                        var neo4jNodeName=dataItem.row[0];//再从row信息中获取每个结点的简短name并保存
+                        neo4jNodeName.forEach(function (row,index) {
+                            if(index%2==0){//不存储关系信息
+                                TCnum_nodenamelist[k][j]=row.name;
+                                j++;
+                            }
+                        });
+                        setButtons(TCnum_nodelist[k],k);
+                        setBtnBottomName(TCnum_nodenamelist[k],k)
+                        //console.log(k);
+                        k++;
+                    });
+                }
+            }, 'json');
+
+        setTimeout(function(){ dataSave() },500);//延时等待
+    }
+/*    function deepcopy(obj) {//不可用，拷贝后每项目只有一个字符
+        var out = [],i = 0,len = obj.length;
+        for (; i < len; i++) {
+            if (obj[i] instanceof Array){
+                out[i] = deepcopy(obj[i]);
+            }
+            else out[i] = obj[i];
+        }
+        return out;
+    }*/
+
+    //Page Init
+    $(function() {
+        var neo4jLogin = 'neo4j';
+        var neo4jPassword = 'password';
+
+        var TCnum_nodelist_cache=sessionStorage.getItem('TCnum_nodelist');//getItem为一串字符
+        var TCnum_nodenamelist_cache=sessionStorage.getItem('TCnum_nodenamelist');
+        if(TCnum_nodelist_cache!=null)//如果非第一次进入页面，已经保存过数据
+        {   console.log("Already Saved.");
+            if(TCnum_nodenamelist_cache!=null)//都保存了数据
+            {
+            //    TCnum_nodelist=TCnum_nodelist_cache;//浅拷贝
+            //    TCnum_nodenamelist=TCnum_nodenamelist_cache;
+              //  TCnum_nodelist= deepcopy(TCnum_nodelist_cache);
+              //  TCnum_nodenamelist=deepcopy(TCnum_nodenamelist_cache);
+  /*              let re=[];
+                for(let i=0;i<TCnum_nodelist_cache.length;i++){
+                    let [...TCnum_nodelist]=TCnum_nodelist_cache;
+                    re.push(TCnum_nodelist);
+                }*/
+             //   console.log(TCnum_nodelist_cache.length);
+             //   console.log(TCnum_nodelist);
+
+                var TCnum_nodelist_cache=TCnum_nodelist_cache.split(",");
+                //console.log("+=+++"+TCnum_nodelist_cache);
+                var TCnum_nodenamelist_cache=TCnum_nodenamelist_cache.split(",");
+                for (var i=0;i<TCnum_nodelist_cache.length;i++)
+                {
+                    //console.log("["+parseInt(i/20)+"]["+parseInt(i%20)+"]");
+                    TCnum_nodelist[parseInt(i/20)][parseInt(i%20)]=TCnum_nodelist_cache[i];
+                }
+                for (var i=0;i<TCnum_nodenamelist_cache.length;i++)
+                {
+                    //console.log("["+parseInt(i/20)+"]["+parseInt(i%20)+"]");
+                    TCnum_nodenamelist[parseInt(i/20)][parseInt(i%20)]=TCnum_nodenamelist_cache[i];
+                }
+                console.log(TCnum_nodenamelist);
+                for(var k=0;k<testcasenum;k++)
+                {
+                    console.log("Start to set.");
+                    setButtons(TCnum_nodelist[k],k);
+                    setBtnBottomName(TCnum_nodenamelist[k],k)
+                }
+                document.getElementById("node").innerText="共"+k+"个测试用例，有";
+
+            }
+        }
+        else{
+            console.log("Not Saved.");
+            if(TCnum_nodenamelist_cache==null)//都为空的
+            {
+                setupNeo4jLoginForAjax(neo4jLogin, neo4jPassword);//进行查询
+                submitQuery(1);//clickedindex为1的结点
+                console.log("Queried.");
+            }
+        }
+
+
+        $('#btnRefresh').click(            function() {reFresh()}            );
+
+    });
+</script>
+</body>
+</html>

@@ -40,6 +40,8 @@
         <h5><div id="node">测试用例图示</div></h5>
     </div>
     <div id="nodegraph" style="margin-left: 30px;margin-right: 50px">    </div>
+    <div id="nodegraphname" style="margin-left: 15px;margin-right: 50px;font-size: 1px">    </div>
+
     <hr  />
     <div class="row" style="margin-left: 30px;margin-right: 50px" >
         <h5><div id="nodeInfo">测试用例信息</div></h5>
@@ -85,57 +87,6 @@
     var datainfo =  " <table>";
 
 
-    /**
-     * 合并单元格(如果结束行传0代表合并所有行)
-     * @param table1    表格的ID
-     * @param startRow  起始行
-     * @param endRow    结束行
-     * @param col   合并的列号，对第几列进行合并(从0开始)。第一行从0开始
-     */
-    function mergeCell(table1, startRow, endRow, col) {
-        var tb = document.getElementById(table1);
-        if(!tb || !tb.rows || tb.rows.length <= 0) {
-            return;
-        }
-        if(col >= tb.rows[0].cells.length || (startRow >= endRow && endRow != 0)) {
-            return;
-        }
-        if(endRow == 0) {
-            endRow = tb.rows.length - 1;
-        }
-        for(var i = startRow; i < endRow; i++) {
-            if(tb.rows[startRow].cells[col].innerHTML == tb.rows[i + 1].cells[col].innerHTML) { //如果相等就合并单元格,合并之后跳过下一行
-                tb.rows[i + 1].removeChild(tb.rows[i + 1].cells[col]);
-                tb.rows[startRow].cells[col].rowSpan = (tb.rows[startRow].cells[col].rowSpan) + 1;
-            } else {
-                mergeCell(table1, i + 1, endRow, col);
-                break;
-            }
-        }
-    }
-
-    /*
-    参数:table或tbody的id,开始行号，结束行号，合并哪一列
-    mc('field_selection', 0, 4, 0);
-    */
-    function mc(table1, startRow, endRow, col) {
-        var tb = document.getElementById(table1);
-        let tableCellLength = tb.rows[0].cells.length;
-        for (let i = startRow; i < endRow; i++) {
-            if (tb.rows[startRow].cells[col].innerHTML == tb.rows[i + 1].cells[col].innerHTML) {
-                //合并最后一列相同的行
-                tb.rows[i + 1].removeChild(tb.rows[i + 1].cells[tableCellLength-1]);
-                tb.rows[startRow].cells[tableCellLength-1].rowSpan = (tb.rows[startRow].cells[tableCellLength-1].rowSpan | 0) + 1;
-                //合并第col列相同的行
-                tb.rows[i + 1].removeChild(tb.rows[i + 1].cells[col]);
-                tb.rows[startRow].cells[col].rowSpan = (tb.rows[startRow].cells[col].rowSpan | 0) + 1;
-            }else{
-                mc(table1, i + 1, endRow, col)
-            }
-        }
-    }//mc(table1, startRow, endRow, col)
-
-
     function showteststep()
     {
     //console.log(this.value)
@@ -145,15 +96,49 @@
 
     function setTableInfo(data)
     {
+        for(var i=0;i<nodeidlist.length;i++)
+        {
+            data += "<tr>";
+            data += "<td  rowspan=2><strong>结点" + nodeidlist[i] + "</td></strong>";
+            data += "<td><strong>"+nodename1list[i]+"</td>";
+            data += "</tr><tr >";
+            data += "</strong>";
+            data += "<td>"+nodename2list[i]+"</td>";
+            data += "</tr>";
+
+        }
+
         data += "</table>";
 
         document.getElementById("tableInfo").innerHTML = data;
 
-        mc('tableInfo', 0, 3, 0);
+      //  mc('tableInfo', 0, 3, 0);
           console.log("-----"+data);
+        setBtnBottomName();//设置每个按钮下的名字
+    }
+
+    function setBtnBottomName()//设置每个按钮下的名字
+    {
+        for(var i=0;i<nodebtnnamelist.length;i++)//
+        {
+            var op = document.createElement("input");
+            op.type = "button";
+            op.value = nodebtnnamelist[i];
+            op.style.cssText = "padding:0px;width: 100px;background:transparent;border-width:0px;outline:none;";
+            document.getElementById("nodegraphname").appendChild(op);
+            op = null;//及时解除不再使用的变量引用,即将其赋值为 null;
+        }
+        for(var i=0;i<nodebtnnamelist.length;i++)//
+        {
+            document.getElementById("btn"+i).title="点击分析测试步骤\n"+nodename1list[i];//鼠标悬浮在按钮上的显示
+        }
     }
 
 
+    var nodebtnnamelist=[];
+    var nodeidlist=[];
+    var nodename1list=[];
+    var nodename2list=[];
     function setButtons(nodelist){
 
         var nodeList = nodelist.split(",");
@@ -163,6 +148,7 @@
             var o=document.createElement("input");
             o.type = "button" ;
             o.value = nodeList[i];
+            o.id="btn"+i;//方便后续设置title
             o.className="btn btn-outline-primary btn-sm";//
             var left=53+i*100;
             o.style.cssText ="left:"+left+"px;width: 70px;height: 70px;border-radius:50%";//隔开
@@ -186,59 +172,50 @@
 
         for(var i=0;i<nodeList.length;i++) {//结点信息的获取与展示
             var queryStr =  'match (n)  where id(n) = ' + nodeList[i] + ' return n';
+           // console.log(queryStr);
             var jqxhr = $.post(neo4jAPIURL, '{"statements":[{"statement":"' + queryStr + '", "resultDataContents":["graph"]}]}',
                 function(data) {
-                    // console.log(data);
+                     console.log(data);
                     if (data.results != null && data.results.length > 0 && data.results[0].data != null && data.results[0].data.length > 0) {
 
                         var neo4jDataItmArray = data.results[0].data;
-                        neo4jDataItmArray.forEach(dataItem => {
-                            neo4jNodeItm=dataItem.graph.nodes[0];
-                         //   console.log(neo4jNodeItm);
+                        neo4jDataItmArray.forEach(dataItem =>  {//不是index，只取每个的第一项
+                            neo4jNodeItm=dataItem.graph.nodes[0]
+                            console.log(neo4jNodeItm);
+                            var nodeid=neo4jNodeItm.id;
+                            var index=nodeList.indexOf(nodeid);//根据传入结点列表nodeList中的位置确定索引位置，避免迸发造成乱序
+                            nodeidlist[index]=neo4jNodeItm.id;
+                            console.log(index+"+"+nodeidlist[index]);
                             var name=neo4jNodeItm.properties.ElementStoreName;
+                            nodename1list[index]=name;
                             var name2="clickedIndex="+neo4jNodeItm.properties.clickedIndex+" action="+neo4jNodeItm.properties.action+" xpath="+neo4jNodeItm.properties.Elements_xpath;
-                            datainfo += "<tr >";
+                            nodename2list[index]=name2;
+                            nodebtnnamelist[index]=neo4jNodeItm.properties.name;//短名字，不能用push
+
+                         /*   datainfo += "<tr >";
                             datainfo += "<td><strong>结点" + neo4jNodeItm.id + "</td>";//不能用nodeList[i] ，为undefined
                             datainfo += "</strong></tr>";
                             datainfo += "<td><strong>"+name+"</td>";
                             datainfo += "</strong></tr>";
                             datainfo += "<td>"+name2+"</td>";
-                            datainfo += "</tr>";
+                            datainfo += "</tr>";*/
+                            //console.log(i+"+"+nodebtnnamelist[i])
                         });
                     }
                 }, 'json');
-                    }
+        }
         setTimeout(function(){ setTableInfo(datainfo) },500);//延时等待
-
-
 
 
     }
 
     //Page Init
     $(function() {
-
         var neo4jLogin = 'neo4j';
         var neo4jPassword = 'password';
 
-        //######################### variable #########################
-        var id;
-        var nodeItem;
-        var neo4jNodeItm;
-
-
         var nodelist=sessionStorage.getItem('nodelist');
         console.log(nodelist);
-
-
-        function submitQuery(nodeID) {
-
-
-
-
-        }
-
-
         setupNeo4jLoginForAjax(neo4jLogin, neo4jPassword);
         setButtons(nodelist);
 

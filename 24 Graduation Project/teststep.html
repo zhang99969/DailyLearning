@@ -410,6 +410,11 @@
             }*/
         }
 
+        function getPath() {
+            var url = "traversepath.html?id="+id;//此处拼接内容
+            window.location.href = url;
+        }
+
 
         function submitQuery(nodeID) {
             var queryStr =  'match (n)  where id(n) = ' + nodeID + ' return n';
@@ -526,7 +531,7 @@
         $('#btnShowdom').click(            function() {showDomFile()}            );
         $('#btnShowscreenshot').click(            function() {showscreenshot()}            );
         $('#btnShowlog').click(            function() {showLog()}            );
-
+        $('#btnGetpath').click(            function() {getPath()}            );
 
 
 

@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>D3js test step page</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/font-awesome.min.css">
+    <!-- Custom styles for this template -->
+    <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+
+    <div class="container-fluid">
+        <div class="row" style="height:70px; margin-bottom: 15px"; >
+            <div class="col col-10 col-md-10 form-inline" style="background-color:lavender;"><h1>生成遍历路径</h1></div>
+            <div class="col col-1 col-md-1 form-inline" style="background-color:lavender;">
+                <a href="query.html"><button type="button" class="btn btn-outline-primary" id="btnHome" style="background-color: white">
+                    <i class="fa fa-home" aria-hidden="true"></i>
+                </button></a>
+            </div>
+            <div class="col col-1 col-md-1 form-inline" style="background-color:lavender;">
+                <a href="javascript:history.back(-1)"> <button type="button" class="btn btn-outline-primary" id="btnBack" style="background-color: white">
+                    <i class="fa fa-backward" aria-hidden="true"></i>
+                </button></a>
+            </div>
+        </div>
+        </div>
+    <div class="container-fluid">
+
+        <div class="row" style="margin-left: 50px;margin-right: 30px" >
+            <h4>选择遍历路径特征</h4>
+        </div>
+        <div class="row" style="margin-left: 15px"; >
+            <div class="col col-3 col-md-3" style=>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" id="path0" name="path"> 覆盖图结构范围大<br/>
+                    </label>
+                </div>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" id="path1" name="path"> 由起始结点至此最短路径<br/>
+                    </label>
+                </div>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" id="path2" name="path"> 覆盖图结构深度深<br/>
+                    </label>
+                </div>
+            </div>
+                <div class="col col-9 col-md-9 form-inline" >
+                    <button type="button" class="btn btn-outline-primary btn-sm" id="btnTraverse" style="margin-left:50px;">
+                        <i class="fa fa-road" aria-hidden="true"></i> 生成遍历路径
+                    </button>
+                    <button type="button" class="btn btn-outline-primary btn-sm" id="btnReselect" style="margin-left:50px;">
+                        <i class="fa fa-refresh" aria-hidden="true"></i> 重新选择特征
+                    </button>
+                    <button type="button" class="btn btn-outline-primary btn-sm" id="btnShowcase" style="margin-left:50px;">
+                        <i class="fa fa-search" aria-hidden="true"></i> 分析该测试用例
+                    </button>
+                    <button type="button" class="btn btn-outline-primary btn-sm" id="btnSave" style="margin-left:50px;">
+                        <i class="fa fa-floppy-o" aria-hidden="true"></i> 保存？
+                    </button>
+                </div>
+        </div>
+        <div class="container-fluid">
+            <div class="row">
+            <input type="text" class="form-control form-control-sm"  id="queryText" onfocus="this.select()" placeholder="查询内容"  style="display: none" />
+            <div class="col col-12 col-md-12" id="graphContainer" style="padding-right: 0px">
+
+                <svg id="resultSvg"></svg>
+            </div>
+            </div>
+        </div>
+    </div>
+
+
+<!-- jQuery first, then Popper.js, then Bootstrap JS -->
+
+<script src="js/jquery-3.3.1.min.js"></script>
+<script src="js/jquery.params.js"></script>
+<script src="js/popper.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="js/d3.v5.min.js"></script>
+<script src="js/d3js-example-neo4j.js"></script>
+<script type="text/javascript">
+    "use strict";
+
+    var id;
+    var neo4jAPIURL = 'http://localhost:7474/db/data/transaction/commit';
+    var TP_nodelist=[];
+
+    var graphWidth =(document.documentElement.clientWidth-15)/12*11;// 1024; //default
+    var graphHeight = 450;
+
+
+    var circleSize = 20;
+    var textPosOffsetY = 5;
+
+    var collideForceSize = circleSize * 2.5;
+    var linkForceSize = 150;
+
+    var arrowHeight = 6;
+    var arrowWidth = 10 ;
+
+
+    //######################### variable #########################
+    var nodeItemMap = {};
+    var linkItemMap = {};
+    var clickednode=[];
+    var nodelist=[];
+
+    var d3Simulation = null;
+    var circles;
+    var circleText;
+    var lines;
+    var lineText;
+    var circlesinResult;
+
+    var itemColorMap = {};
+    var colorScale = d3.scaleOrdinal(d3.schemeSet2);
+
+    var drag_handler = d3.drag()
+        .on('start', drag_start)
+        .on('drag', drag_move)
+        .on('end', drag_end);
+
+    var zoom_handler = d3.zoom()
+        .filter(function() {
+            return (d3.event.type == 'wheel' | d3.event.type == 'mousedown');
+        })
+        .on('zoom', zoom_actions);
+
+    window.onresize = function(){
+        graphWidth=(document.documentElement.clientWidth-15)/12*11;
+        initGraph();
+    }
+
+    function unfreezeItms() {
+        var nodeItmArray = d3Simulation.nodes();
+        if (nodeItmArray != null) {
+            nodeItmArray.forEach(function(nodeItm) {
+                if (nodeItm.fx != null) {
+                    nodeItm.fx = null;
+                    nodeItm.fy = null;
+                }
+            });
+        }
+    }
+
+    function drag_start(d) {
+        d3Simulation.alphaTarget(0.3).restart();
+        d.fx = d.x;
+        d.fy = d.y;
+    }
+
+    function drag_move(d) {
+        d.fx = d3.event.x;
+        d.fy = d3.event.y;
+    }
+
+    function drag_end(d) {
+        if (!d3.event.active && d3Simulation != null)
+            d3Simulation.alphaTarget(0);
+    }
+
+    function zoom_actions(){
+        d3.select('#resultSvg').select('g').attr('transform', d3.event.transform);
+    }
+
+    function initGraph() {
+        var svg = d3.select('#resultSvg');
+        var zoomGLayer = svg.append('g');
+
+        var centerX = graphWidth / 2;
+        var centerY = graphHeight / 2;
+
+        svg.attr('width', graphWidth)
+            .attr('height', graphHeight);
+
+        zoomGLayer.append('g').attr('id', 'circle-group').attr('transform', 'translate(' + centerX + ',' + centerY + ')');
+        zoomGLayer.append('g').attr('id', 'text-group').attr('transform', 'translate(' + centerX + ',' + centerY + ')');
+        zoomGLayer.append('g').attr('id', 'path-group').attr('transform', 'translate(' + centerX + ',' + centerY + ')');
+        zoomGLayer.append('g').attr('id', 'path-label-group').attr('transform', 'translate(' + centerX + ',' + centerY + ')');
+
+        zoom_handler(svg);
+    }
+
+    function stopSimulation() {
+        if (d3Simulation != null) {
+            d3Simulation.stop()
+                .on('tick', null);
+            d3Simulation = null;
+        }
+    }
+
+    function tick() {
+        lines.attr('d', drawLine);
+        lineText.attr('transform', transformPathLabel);
+        circles.attr('transform', transform);
+        circleText.attr('transform', transform);
+    }
+
+    function transformPathLabel(d) {
+        var sourceX = d.source.x + ((d.target.x - d.source.x) / 2);
+        var sourceY = d.source.y + ((d.target.y - d.source.y) / 2);
+        return 'translate(' + sourceX + ',' + sourceY + ')';
+    }
+
+    function transform(d) {
+        return 'translate(' + d.x + ',' + d.y + ')';
+    }
+
+    function drawLine(d) {
+        var deltaX, deltaY, dist, cosTheta, sinTheta, sourceX, sourceY, targetX, targetY;
+
+        deltaX = d.target.x - d.source.x;
+        deltaY = d.target.y - d.source.y;
+
+        dist = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+        cosTheta = dist==0?0:deltaX / dist;
+        sinTheta = dist==0?0:deltaY / dist;
+        //console.log("dist="+dist+" cos0="+cosTheta+" sin0="+sinTheta);//有的出现了NaN,因为结点不再移动dist=0
+        sourceX = d.source.x + (circleSize * cosTheta);
+        sourceY = d.source.y + (circleSize * sinTheta);
+        targetX = d.target.x - (circleSize * cosTheta);
+        targetY = d.target.y - (circleSize * sinTheta);
+
+        //Not use marker as IE does not support it and so embed the arrow in the path directly
+        var arrowLeftX, arrowLeftY, arrowRightX, arrowRightY;
+
+        arrowLeftX = targetX - (arrowHeight * sinTheta) - (arrowWidth * cosTheta);
+        arrowLeftY = targetY + (arrowHeight * cosTheta) - (arrowWidth * sinTheta);
+        arrowRightX = targetX + (arrowHeight * sinTheta) - (arrowWidth * cosTheta);
+        arrowRightY = targetY - (arrowHeight * cosTheta) - (arrowWidth * sinTheta);
+
+        return 'M' + sourceX + ' ' + sourceY + ' L' + targetX + ' ' + targetY
+            + ' M' + targetX + ' ' + targetY + ' L' + arrowLeftX + ' ' + arrowLeftY
+            + ' L' + arrowRightX + ' ' + arrowRightY + ' Z';
+    }
+
+
+    function updateGraph() {
+        var d3LinkForce = d3.forceLink()
+            .distance(linkForceSize)
+            .links(mapToArray(linkItemMap))
+            .id(function(d) {return d.id;});
+
+        d3Simulation = d3.forceSimulation()
+            //.force('chargeForce', d3.forceManyBody())//.strength(-300)
+            .force('collideForce', d3.forceCollide(collideForceSize))
+            .nodes(mapToArray(nodeItemMap))
+            .force('linkForce', d3LinkForce);
+
+        circles = d3.select('#circle-group').selectAll('circle')
+            .data(d3Simulation.nodes(), function(d) {return d.id;});
+        circleText = d3.select('#text-group').selectAll('text')
+            .data(d3Simulation.nodes(), function(d) {return d.id;});
+        lines = d3.select('#path-group').selectAll('path')
+            .data(d3LinkForce.links(), function(d) {return d.id;});
+        lineText = d3.select('#path-label-group').selectAll('text')
+            .data(d3LinkForce.links(), function(d) {return d.id;});
+
+        circles.exit().remove();
+        circles = circles.enter().append('circle')
+            .attr('r', circleSize)
+            .attr('fill', getItemColor)
+            .attr('stroke', function(d) {return getColorDarker(getItemColor(d));})
+            .call(drag_handler)
+            .on('mouseover', function(d) {
+                d3.select(this)
+                    .attr('fill', function(d) {return getColorBrighter(getItemColor(d));})
+                    .attr('stroke', getItemColor);
+            })
+            .on('mouseout', function(d) {
+                d3.select(this)
+                    .attr('fill', getItemColor)
+                    .attr('stroke', function(d) {return getColorDarker(getItemColor(d));});
+            })
+            .merge(circles);
+
+        circleText.exit().remove();
+        circleText = circleText.enter().append('text')
+            .attr('y', textPosOffsetY)
+            .attr('text-anchor', 'middle')
+            .text(function(d) {return d.properties.name;})//结点显示的属性
+            .merge(circleText);
+
+        lines.exit().remove();
+        lines = lines.enter().append('path')
+            .merge(lines);
+
+        lineText.exit().remove();
+        lineText = lineText.enter().append('text')
+            .attr('y', textPosOffsetY)
+            .attr('text-anchor', 'middle')
+            .text(function(d) {return d.type;})
+            .merge(lineText);
+
+        d3Simulation
+            .on('tick', tick)
+            .on('end', function() {
+                unfreezeItms();
+            });
+    }
+
+
+    function submitQuery(nodeID) {
+        var queryStr = null;
+        if (nodeID == null || !nodeID) {
+            queryStr = $.trim($('#queryText').val());
+            if (queryStr == '') {
+                queryStr=
+                promptAlert($('#graphContainer'), '错误：搜索内容不能为空 ', true);
+                return;
+            }
+        }
+        stopSimulation();
+
+        if (nodeID == null || !nodeID) {
+            nodeItemMap = {};
+            linkItemMap = {};
+        }
+
+        var jqxhr = $.post(neo4jAPIURL, '{"statements":[{"statement":"' + queryStr + '", "resultDataContents":["graph"]}]}',
+            function(data) {
+                //console.log(JSON.stringify(data));
+                if (data.errors != null && data.errors.length > 0) {
+                    promptAlert($('#graphContainer'), '错误: 语法' + data.errors[0].message + '(' + data.errors[0].code + ')', true);
+                    return;
+                }
+
+                if (data.results != null && data.results.length > 0 && data.results[0].data != null && data.results[0].data.length > 0) {
+                    var neo4jDataItmArray = data.results[0].data;
+                    neo4jDataItmArray.forEach(function(dataItem) {
+                        //Node
+                        if (dataItem.graph.nodes != null && dataItem.graph.nodes.length > 0) {
+                            var neo4jNodeItmArray = dataItem.graph.nodes;
+                            neo4jNodeItmArray.forEach(function(nodeItm) {
+                                if (!(nodeItm.id in nodeItemMap))
+                                    nodeItemMap[nodeItm.id] = nodeItm;
+
+                            });
+                        }
+                        //Link
+                        if (dataItem.graph.relationships != null && dataItem.graph.relationships.length > 0) {
+                            var neo4jLinkItmArray = dataItem.graph.relationships;
+                            neo4jLinkItmArray.forEach(function(linkItm) {
+                                if (!(linkItm.id in linkItemMap)) {
+                                    linkItm.source = linkItm.startNode;
+                                    linkItm.target = linkItm.endNode;
+                                    linkItemMap[linkItm.id] = linkItm;
+
+                                }
+                            });
+                        }
+                    });
+                    updateGraph();
+                    return;
+                }
+                updateGraph();
+                promptAlert($('#graphContainer'), '抱歉，没有找到相关结点和关系 !', true);
+            }, 'json');
+
+        jqxhr.fail(function(data) {
+            promptAlert($('#graphContainer'), '错误: 请求了查询但数据返回错误 (' + data + ')', true);
+        });
+    }
+
+
+    function getItemColor(d) {
+        if (!(d.labels[0] in itemColorMap)) {
+            itemColorMap[d.labels[0]] = colorScale(d.labels[0]);
+        }
+        if(d.id==id)//传入结点默认变色
+        {
+            return "#62d1fc";
+        }
+        if (TP_nodelist.length!=0) {
+           for(var i=0;i<TP_nodelist.length;i++)
+          {
+                if(d.id==TP_nodelist[i])
+                {
+              //      console.log(d.id+"变色");
+                    return "#62d1fc";
+                }
+          }
+        }
+        return colorScale(d.labels[0]);
+    }
+
+    function getColorBrighter(targetColor) {
+        return d3.rgb(targetColor).brighter(0.3).toString();
+    }
+
+    function getColorDarker(targetColor) {
+        return d3.rgb(targetColor).darker().toString();
+    }
+
+    function showDefaultGraph()
+    {
+        //进入页面默认显示完整的图结构
+        $("#queryText").val("MATCH (f1:PageWithES) MATCH path = (f1)-[]->(f:PageWithES) RETURN path;");
+        submitQuery();
+    }
+
+    function mouserOverall()//鼠标滑过每个结点并划走，实现部分结点显示显色后的效果
+    {
+        var circlesAll = d3.select('#circle-group').selectAll('circle');
+        console.log("all")
+        console.log(circlesAll);
+        circlesAll.each(function(d, i) {
+            var onClickFunc = d3.select(this).on("mouseover");
+            onClickFunc.apply(this, [d, i]);
+        });//鼠标划过每个结点，否则颜色不会变*/
+        //也可以直接把划过的颜色更改，但真实鼠标滑过之后颜色会恢复
+        circlesAll.each(function(d, i) {
+            var onClickFunc = d3.select(this).on("mouseout");
+            onClickFunc.apply(this, [d, i]);//再把所有鼠标滑过的划走，不然还是亮色
+        });
+
+    }
+
+    function traverserPathCreate(){
+
+        reSelect();
+        var checklist=[];
+        var obj=document.getElementsByName("path");
+        var success=false;
+        for(var i=0;i<obj.length;i++)
+        {
+            if(obj[i].checked)
+            {
+                checklist[i]=true;
+            }
+        }
+        if(checklist[1]!=true&&checklist[0]!=true&&checklist[2]!=true)//未勾选
+        {
+            promptAlert($('#graphContainer'), '请勾选遍历路径特征', true);
+            console.log("未勾选");
+        }
+        else if(id=="")//没有从上一个页面传递过来id信息
+        {
+            promptAlert($('#graphContainer'), '未找到需要生成遍历路径的结点，请尝试重新分析测试步骤', true);
+            console.log("没有id");
+        }
+        else if(checklist[1]==true&&checklist[0]!=true&&checklist[2]!=true)//只勾选第二项
+        {
+            submitQueryForShorest(id);
+            success=true;
+            setTimeout(function(){mouserOverall() },500);//延时等待
+        }
+        else if(checklist[0]==true&&checklist[1]!=true&&checklist[2]!=true)//只勾选第一项
+        {
+            submitQueryForLonger(id);
+            success=true;
+            var longer=true;//需要更长时间显示
+            promptAlert($('#graphContainer'), '计算中', false);
+            setTimeout(function(){
+                mouserOverall();
+                removeAlert();
+                promptAlert($('#graphContainer'), '生成遍历路径成功', false);
+                document.getElementById("btnShowcase").disabled=false;
+                document.getElementById("btnSave").disabled=false;},5000);//延时等待
+        }
+
+
+        if(success&&longer!=true) {
+            promptAlert($('#graphContainer'), '生成遍历路径成功', false);
+            document.getElementById("btnShowcase").disabled=false;
+            document.getElementById("btnSave").disabled=false;
+        }
+
+    }
+
+    function reSelect()
+    {
+    //    var a=d3.select('#circle-group').selectAll('circle')._groups;
+    //    console.log(a);
+        TP_nodelist.length=0;
+        document.getElementById("btnShowcase").disabled=true;
+        document.getElementById("btnSave").disabled=true;
+        initGraph();//初始化
+        showDefaultGraph();//显示默认图
+        mouserOverall();//鼠标全部划过，可以把已经涂色的结点的颜色变回默认的
+
+    }
+    function savePath()
+    {
+
+        removeAlert();
+        promptAlert($('#graphContainer'), '保存成功', false);
+        var url = "testcasesaved.html";
+        window.open(url);
+
+    }
+
+    function jumptestcase()
+    {
+      //  localStorage.setItem('nodelist',TP_nodelist.toString());
+        sessionStorage.setItem('nodelist',TP_nodelist.toString());
+     console.log("local=")
+        console.log(localStorage.getItem('nodelist'))
+        var url = "testcase.html";
+        window.open(url);
+    }
+
+    function submitQueryForShorest(nodeID) {
+        var queryStr =  'MATCH p=shortestPath((a:PageWithES{clickedIndex:1})-[*]->(b:PageWithES)) where id(b) =' + nodeID + '  return p;';
+        var jqxhr = $.post(neo4jAPIURL, '{"statements":[{"statement":"' + queryStr + '", "resultDataContents":["row"]}]}',
+            function(data) {
+                 console.log(data);
+                if (data.results != null && data.results.length > 0 && data.results[0].data != null && data.results[0].data.length > 0) {
+                    var neo4jDataItmArray = data.results[0].data;
+                    neo4jDataItmArray.forEach(dataItem => {
+                        var j=0;
+                        // console.log("______");
+                        var neo4jNodeItm=dataItem.meta[0];
+                        //console.log(neo4jNodeItm);
+                        neo4jNodeItm.forEach(function (meta,index) {
+                            //  console.log(meta.id);
+                            if(index%2==0){//不存储关系信息
+                                TP_nodelist[j]=meta.id;
+                                console.log("nodelist["+j+"]="+meta.id);
+                                j++;
+                            }
+                        });
+                    });
+                }
+            }, 'json');
+    }
+    function submitQueryForLonger(nodeID) {//最大长度为13，约5秒响应，修改下面一行中的数字修改
+        var queryStr =  'MATCH p=(:PageWithES{clickedIndex:1})-[*2..13]->(b:PageWithES)  where id(b)='+nodeID+' UNWIND NODES(p) AS n WITH p,b, SIZE(COLLECT(DISTINCT n)) AS testLength WHERE testLength = LENGTH(p)+1 RETURN p ORDER BY length(p) DESC limit 1;'
+        var jqxhr = $.post(neo4jAPIURL, '{"statements":[{"statement":"' + queryStr + '", "resultDataContents":["row"]}]}',
+            function(data) {
+                console.log(data);
+                if (data.results != null && data.results.length > 0 && data.results[0].data != null && data.results[0].data.length > 0) {
+                    var neo4jDataItmArray = data.results[0].data;
+                    neo4jDataItmArray.forEach(dataItem => {
+                        var j=0;
+                        // console.log("______");
+                        var neo4jNodeItm=dataItem.meta[0];
+                        //console.log(neo4jNodeItm);
+                        neo4jNodeItm.forEach(function (meta,index) {
+                            //  console.log(meta.id);
+                            if(index%2==0){//不存储关系信息
+                                TP_nodelist[j]=meta.id;
+                                console.log("nodelist["+j+"]="+meta.id);
+                                j++;
+                            }
+                        });
+                    });
+                }
+            }, 'json');
+    }
+
+    //Page Init
+    $(function() {
+
+        var neo4jLogin = 'neo4j';
+        var neo4jPassword = 'password';
+
+        //######################### variable #########################
+
+        var neo4jNodeItm;
+        var nodeName;
+        var nodeIndex;
+
+
+        setupNeo4jLoginForAjax(neo4jLogin, neo4jPassword);
+        id = $.query.get("id");
+     //   id=184;//测试用 这个id是从另外一个页面传递过来的，赋值好调试的时候就不用从别的页面跳转过来了
+        console.log(id);
+
+        initGraph();
+        showDefaultGraph();
+
+        document.getElementById("btnShowcase").disabled=true;
+        document.getElementById("btnSave").disabled=true;
+        $('#btnTraverse').click(            function() {traverserPathCreate()}            );
+        $('#btnReselect').click(            function() {reSelect()}            );
+        $('#btnShowcase').click(            function() {jumptestcase()}   );
+        $('#btnSave').click(            function() {savePath()}            );
+
+
+
+
+    });
+</script>
+</body>
+</html>
