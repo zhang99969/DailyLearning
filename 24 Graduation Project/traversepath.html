@@ -91,6 +91,7 @@
     var id;
     var neo4jAPIURL = 'http://localhost:7474/db/data/transaction/commit';
     var TP_nodelist=[];
+    var TP_nodelistname=[];
 
     var graphWidth =(document.documentElement.clientWidth-15)/12*11;// 1024; //default
     var graphHeight = 450;
@@ -481,6 +482,7 @@
     //    var a=d3.select('#circle-group').selectAll('circle')._groups;
     //    console.log(a);
         TP_nodelist.length=0;
+        TP_nodelistname.length=0;
         document.getElementById("btnShowcase").disabled=true;
         document.getElementById("btnSave").disabled=true;
         initGraph();//初始化
@@ -491,19 +493,65 @@
     function savePath()
     {
 
+        var savedflag=false;
         removeAlert();
-        promptAlert($('#graphContainer'), '保存成功', false);
-        var url = "testcasesaved.html";
-        window.open(url);
+        promptAlert($('#graphContainer'), '保存成功，请在弹出页面查看已保存的测试用例', false);
+        var TCsave_nodelist_cache;
+        var TCsave_nodelistname_cache;
+        var ifTCsave_nodelistnull=sessionStorage.getItem('TCsave_nodelist')==null;
 
+        if(ifTCsave_nodelistnull)
+        {
+            TCsave_nodelist_cache="";
+            TCsave_nodelistname_cache="";
+        }
+        else
+        {
+            TCsave_nodelist_cache=sessionStorage.getItem('TCsave_nodelist');//在之前基础上保存
+            TCsave_nodelistname_cache=sessionStorage.getItem('TCsave_nodelistname');
+            var indexleft = TCsave_nodelist_cache.indexOf('['); // [字符出现的位置
+            var indexright = TCsave_nodelist_cache.indexOf(']'); // ]字符出现的位置
+
+            while(indexleft !== -1 && indexright !== -1) {//只判断结点id，如果重复说明name的list也重复
+            //    console.log(indexleft);
+            //    console.log(indexright);
+           ///     console.log(TCsave_nodelist_cache.substring(indexleft+1,indexright));
+          //      console.log(TP_nodelist.toString() );
+                if(TCsave_nodelist_cache.substring(indexleft+1,indexright) ==TP_nodelist.toString() )//该字符串已经保存过了
+                {
+                    console.log("已保存过，本次不保存");
+                    savedflag=true;
+                    break;
+                }
+                indexleft = TCsave_nodelist_cache.indexOf('[',indexleft + 1); // 从字符串出现的位置的下一位置开始继续查找
+                indexright = TCsave_nodelist_cache.indexOf(']',indexright + 1); // 从字符串出现的位置的下一位置开始继续查找
+            }
+        }
+        if(savedflag==false)
+        {
+            TCsave_nodelist_cache=TCsave_nodelist_cache+"["+TP_nodelist.toString()+"]";
+            TCsave_nodelistname_cache=TCsave_nodelistname_cache+"["+TP_nodelistname.toString()+"]";
+        }
+
+        sessionStorage.setItem('TCsave_nodelist',TCsave_nodelist_cache);
+        sessionStorage.setItem('TCsave_nodelistname',TCsave_nodelistname_cache);
+        console.log(TCsave_nodelist_cache);
+        var url = "testcasesaved.html";
+       window.open(url);
+
+     /*
+     //调试用
+     sessionStorage.removeItem('TCsave_nodelist');
+        sessionStorage.removeItem('TCsave_nodelistname');
+*/
     }
 
     function jumptestcase()
     {
       //  localStorage.setItem('nodelist',TP_nodelist.toString());
         sessionStorage.setItem('nodelist',TP_nodelist.toString());
-     console.log("local=")
-        console.log(localStorage.getItem('nodelist'))
+        console.log("session=")
+        console.log(sessionStorage.getItem('nodelist'))//
         var url = "testcase.html";
         window.open(url);
     }
@@ -512,6 +560,7 @@
         var queryStr =  'MATCH p=shortestPath((a:PageWithES{clickedIndex:1})-[*]->(b:PageWithES)) where id(b) =' + nodeID + '  return p;';
         var jqxhr = $.post(neo4jAPIURL, '{"statements":[{"statement":"' + queryStr + '", "resultDataContents":["row"]}]}',
             function(data) {
+                console.log("data is");
                  console.log(data);
                 if (data.results != null && data.results.length > 0 && data.results[0].data != null && data.results[0].data.length > 0) {
                     var neo4jDataItmArray = data.results[0].data;
@@ -522,10 +571,19 @@
                         //console.log(neo4jNodeItm);
                         neo4jNodeItm.forEach(function (meta,index) {
                             //  console.log(meta.id);
-                            if(index%2==0){//不存储关系信息
+                            if(index%2==0){//不存储关系信息，有余数时跳过
                                 TP_nodelist[j]=meta.id;
                                 console.log("nodelist["+j+"]="+meta.id);
                                 j++;
+                            }
+                        });
+                        var jj=0;
+                        var neo4jNodenameItm=dataItem.row[0];
+                        neo4jNodenameItm.forEach(function (row,index) {//存储结点id对应的名字
+                            if(index%2==0){
+                                TP_nodelistname[jj]=row.name;
+                                console.log("nodenamelist["+jj+"]="+row.name);
+                                jj++;
                             }
                         });
                     });
@@ -541,7 +599,6 @@
                     var neo4jDataItmArray = data.results[0].data;
                     neo4jDataItmArray.forEach(dataItem => {
                         var j=0;
-                        // console.log("______");
                         var neo4jNodeItm=dataItem.meta[0];
                         //console.log(neo4jNodeItm);
                         neo4jNodeItm.forEach(function (meta,index) {
@@ -550,6 +607,15 @@
                                 TP_nodelist[j]=meta.id;
                                 console.log("nodelist["+j+"]="+meta.id);
                                 j++;
+                            }
+                        });
+                        var jj=0;
+                        var neo4jNodenameItm=dataItem.row[0];
+                        neo4jNodenameItm.forEach(function (row,index) {//存储结点id对应的名字
+                            if(index%2==0){
+                                TP_nodelistname[jj]=row.name;
+                                console.log("nodenamelist["+jj+"]="+row.name);
+                                jj++;
                             }
                         });
                     });

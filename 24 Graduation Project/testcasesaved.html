@@ -64,17 +64,17 @@
     "use strict";
     var testcasenum=20;//可以查询到的数量限制
     var neo4jAPIURL = 'http://localhost:7474/db/data/transaction/commit';
-    var TCnum_nodelist = new Array();//TestCaseNum
-    var TCnum_nodenamelist = new Array();
+    var TCsave_nodelist = new Array();//TestCaseNum
+   // var TCsave_nodenamelistold = new Array();//旧的映射表，列 数表示id，值表示id结点的名字。搭配setnodenamelist和getnodenamelist方法
+    var TCsave_nodelistname = new Array();
     for(var k=0;k<testcasenum;k++)
     {
-        TCnum_nodelist[k]=new Array();
-        TCnum_nodenamelist[k]=new Array();
-
+        TCsave_nodelist[k]=new Array();
+        TCsave_nodelistname[k]=new Array();
         for(var j=0;j<20;j++)
         {
-            TCnum_nodelist[k][j]=-1;
-            TCnum_nodenamelist[k][j]=-1;
+            TCsave_nodelist[k][j]=-1;
+            TCsave_nodelistname[k][j]="-1";
         }
     }
 
@@ -88,14 +88,14 @@
     function showtestcase()
     {
         var rownum = this.id;
-        rownum=rownum.toString().substring(3);//通过按钮的id编号获取TCnum_nodelist所在行数
+        rownum=rownum.toString().substring(3);//通过按钮的id编号获取TCsave_nodelist所在行数
         console.log(rownum);
-        console.log(TCnum_nodelist[rownum]);
+        console.log(TCsave_nodelist[rownum]);
 
         var newnodelist=[];
        //newnodelist.length=0;
-        for(var i=0;TCnum_nodelist[rownum][i]!=-1;i++)
-        {newnodelist.push(TCnum_nodelist[rownum][i]);}//转换
+        for(var i=0;TCsave_nodelist[rownum][i]!=-1;i++)
+        {newnodelist.push(TCsave_nodelist[rownum][i]);}//转换
         sessionStorage.setItem('nodelist',newnodelist);//保存，在testcase页面读取
         console.log(newnodelist);
         var url = "testcase.html";
@@ -103,17 +103,112 @@
     }
 
 
-    function setBtnBottomName(nodenamelist,k)//设置每个按钮下的名字
+    function deletetestcase() {
+        var TCsave_nodelist_cache=sessionStorage.getItem('TCsave_nodelist');
+        var TCsave_nodelistname_cache=sessionStorage.getItem('TCsave_nodelistname');
+        var rownum = this.id;
+        rownum=rownum.toString().substring(9);//通过按钮的id编号获取所在行数
+        console.log(rownum);
+        //var TCsave_nodelist_cache = "[305,306,307,308,309,304,176,183][305,306,307,308,309,304,170,171,174,197,198,199,176,183][305,306,307,308,309,304,170,171,174,197,198,183]";
+        //var TCsave_nodelistname_cache = "[我知道了,综合服务登录,用户名,密码,登录,Back,scienceTitleBarIvStart,rlMessage][我知道了,综合服务登录,用户名,密码,登录,Back,scienceTitleBarIvStart,应用,我的,我的,iv1,新消息通知,scienceTitleBarIvStart,rlMessage][我知道了,综合服务登录,用户名,密码,登录,Back,scienceTitleBarIvStart,应用,我的,我的,iv1,rlMessage]"
+        if (TCsave_nodelist_cache != null)
+        {
+
+            var indexleft = TCsave_nodelist_cache.indexOf('['); // [字符出现的位置
+            var indexright = TCsave_nodelist_cache.indexOf(']'); // ]字符出现的位置
+            var indexleftname = TCsave_nodelistname_cache.indexOf('['); // [字符出现的位置
+            var indexrightname = TCsave_nodelistname_cache.indexOf(']'); // ]字符出现的位置
+
+            var linenum = 0;
+            while (indexleft !== -1 && indexright !== -1) {
+
+                if(linenum==rownum)//数据需要删除
+                {
+                    TCsave_nodelist_cache = TCsave_nodelist_cache.substring(0,indexleft) + TCsave_nodelist_cache.substring(indexright+1,TCsave_nodelist_cache.length);
+                    //console.log(TCsave_nodelist_cache);
+                    break;
+                }
+                linenum++;
+                indexleft = TCsave_nodelist_cache.indexOf('[', indexleft + 1); // 从字符串出现的位置的下一位置开始继续查找
+                indexright = TCsave_nodelist_cache.indexOf(']', indexright + 1); // 从字符串出现的位置的下一位置开始继续查找
+            }
+            linenum = 0;
+            while (indexleftname !== -1 && indexrightname !== -1) {
+
+                if(linenum==rownum)//数据需要删除
+                {
+                   // console.log(TCsave_nodelistname_cache.substring(0,indexleftname));
+                  //  console.log(TCsave_nodelistname_cache.substring(indexrightname+1,TCsave_nodelistname_cache.length));
+                    TCsave_nodelistname_cache = TCsave_nodelistname_cache.substring(0,indexleftname) + TCsave_nodelistname_cache.substring(indexrightname+1,TCsave_nodelistname_cache.length);
+                    console.log(TCsave_nodelistname_cache);
+                    console.log("删除")
+                    break;
+                }
+                linenum++;
+                indexleftname = TCsave_nodelistname_cache.indexOf('[', indexleftname + 1);
+                indexrightname = TCsave_nodelistname_cache.indexOf(']', indexrightname + 1);
+            }
+            sessionStorage.removeItem('TCsave_nodelist');
+            sessionStorage.removeItem('TCsave_nodelistname');
+            sessionStorage.setItem('TCsave_nodelist',TCsave_nodelist_cache);
+            sessionStorage.setItem('TCsave_nodelistname',TCsave_nodelistname_cache);
+            TCsave_nodelist.length=0;
+            TCsave_nodelistname.length=0;
+            window.location.reload();
+        }
+    }
+
+    /*
+    旧方法，为每个结点在数据库中查询得到结点名。
+    function setnodenamelist()
+    {
+        for(var k=0;k<testcasenum;k++)
+        {
+            for(var j=0;j<20 && TCsave_nodelist[k][j]>-1 ;j++)
+            {
+                if(TCsave_nodenamelist[  TCsave_nodelist[k][j]  ]>0)//已经保存了值。实际上由于数据库查询原因，直到下一次运行前还来不及保存之前的值
+                {
+                  //  return TCsave_nodenamelist[  TCsave_nodelist[k][j]  ];
+                }
+                else
+                {
+                    TCsave_nodenamelist[  TCsave_nodelist[k][j]  ]=getnodenamelist(TCsave_nodelist[k][j]);
+
+                 //   return TCsave_nodenamelist[  TCsave_nodelist[k][j]  ];
+                }
+            }
+        }
+
+    }
+
+    function getnodenamelist(id)//没有存在TCsave_nodenamelist中，查找数据库并保存到TCsave_nodenamelist中
+    {
+
+            var queryStr =  'match (n) where id(n)='+id+' return n.name';
+            var jqxhr = $.post(neo4jAPIURL, '{"statements":[{"statement":"' + queryStr + '", "resultDataContents":["row"]}]}',
+                function(data) {
+                    if (data.results != null && data.results.length > 0 && data.results[0].data != null && data.results[0].data.length > 0) {
+                        var nodename = data.results[0].data[0].row[0]; //结点名字
+                        console.log(nodename);
+                        return nodename;
+
+                    }
+                }, 'json');
+          //  setTimeout(function(){ dataSave() },500);//延时等待
+    }*/
+
+
+    function setBtnBottomName(nodelistname,k)//设置每个按钮下的名字
     {
 
         var div = document.createElement('div');
         div.style.cssText ="margin-left: 0px;margin-right: 50px;font-size: 1px";
 
-        for(var i=0;nodenamelist[i]!=-1;i++)//结点 测试用例图示的生成与展示
+        for(var i=0;nodelistname[i]!="-1";i++)//结点 测试用例图示的生成与展示
         {
             var op = document.createElement("input");
             op.type = "button";
-            op.value = nodenamelist[i];
+            op.value = nodelistname[i];
             op.style.cssText = "padding:0px;width: 100px;background:transparent;border-width:0px;outline:none;";
             div.appendChild(op);
             document.getElementById("nodegraph").appendChild(div);
@@ -171,9 +266,17 @@
                 //document.body.appendChild(arrow);
                 arrow = null;
             }
-            else if(flagbtnset!=true)//分析测试用例按钮
+            else if(flagbtnset!=true)//分析测试用例 和 删除 按钮
             {
-
+                var o=document.createElement("input");
+                o.type = "button" ;
+                o.value = "删除";
+                o.id="btndelete"+k; //传递k值从而获取 需要分析的测试用例 在nodelist的行数
+                o.className="btn btn-outline-primary btn-sm";//
+                o.style.cssText ="float:right;margin-top:20px;margin-left:40px";
+                o.addEventListener("click",deletetestcase);
+                div.appendChild(o);
+                o = null;
 
                 var o=document.createElement("input");
                 o.type = "button" ;
@@ -191,22 +294,12 @@
     }
 
 
-    function dataSave()//跳转到其他页面前保存TCnum_nodelist和TCnum_nodenamelist数据
+
+    function reFresh()//只是刷新
     {
-        document.getElementById("node").innerText="已保存"+k+"个测试用例，有";
+        sessionStorage.removeItem('TCsave_nodelist');
+        sessionStorage.removeItem('TCsave_nodelistname'); //调试用
 
-        sessionStorage.setItem('TCnum_nodelist',TCnum_nodelist);
-        sessionStorage.setItem('TCnum_nodenamelist',TCnum_nodenamelist);//
-
-        console.log(TCnum_nodelist);
-
-    }
-
-    function reFresh()//刷新
-    {
-        //sessionStorage.setItem('TCnum_nodelist', "");//只把第一项清空了
-        sessionStorage.removeItem('TCnum_nodelist');
-        sessionStorage.removeItem('TCnum_nodenamelist'); //清空，初始化时获取不到TCnum_nodelist和TCnum_nodenamelist信息后会重新查询
         window.location.reload();
     }
 
@@ -217,54 +310,77 @@
     $(function() {
         var neo4jLogin = 'neo4j';
         var neo4jPassword = 'password';
+        setupNeo4jLoginForAjax(neo4jLogin, neo4jPassword);
+        var TCsave_nodelist_cache=sessionStorage.getItem('TCsave_nodelist');//getItem为一串字符
+        var TCsave_nodelistname_cache=sessionStorage.getItem('TCsave_nodelistname');
 
-        var TCnum_nodelist_cache=sessionStorage.getItem('TCnum_nodelist');//getItem为一串字符
-        var TCnum_nodenamelist_cache=sessionStorage.getItem('TCnum_nodenamelist');
-        if(TCnum_nodelist_cache!=null)//如果非第一次进入页面，已经保存过数据
+        //var TCsave_nodelist_cache="[305,306,307,308,309,304,176,183][305,306,307,308,309,304,170,171,174,197,198,199,176,183]";
+        //var TCsave_nodelistname_cache="[我知道了,综合服务登录,用户名,密码,登录,Back,scienceTitleBarIvStart,rlMessage][我知道了,综合服务登录,用户名,密码,登录,Back,scienceTitleBarIvStart,应用,我的,我的,iv1,新消息通知,scienceTitleBarIvStart,rlMessage]"
+         if(TCsave_nodelist_cache!=null)//如果已经保存过
         {   console.log("Already Saved.");
-            if(TCnum_nodenamelist_cache!=null)//都保存了数据
-            {
-            //    TCnum_nodelist=TCnum_nodelist_cache;//浅拷贝
-            //    TCnum_nodenamelist=TCnum_nodenamelist_cache;
-              //  TCnum_nodelist= deepcopy(TCnum_nodelist_cache);
-              //  TCnum_nodenamelist=deepcopy(TCnum_nodenamelist_cache);
-  /*              let re=[];
-                for(let i=0;i<TCnum_nodelist_cache.length;i++){
-                    let [...TCnum_nodelist]=TCnum_nodelist_cache;
-                    re.push(TCnum_nodelist);
-                }*/
-             //   console.log(TCnum_nodelist_cache.length);
-             //   console.log(TCnum_nodelist);
+            console.log(TCsave_nodelist_cache);
+            console.log(TCsave_nodelistname_cache);
 
-                var TCnum_nodelist_cache=TCnum_nodelist_cache.split(",");
-                var TCnum_nodenamelist_cache=TCnum_nodenamelist_cache.split(",");
-                for (var i=0;i<TCnum_nodelist_cache.length;i++)
+            var indexleft = TCsave_nodelist_cache.indexOf('['); // [字符出现的位置
+            var indexright = TCsave_nodelist_cache.indexOf(']'); // ]字符出现的位置
+            var indexleftname = TCsave_nodelistname_cache.indexOf('['); // [字符出现的位置
+            var indexrightname = TCsave_nodelistname_cache.indexOf(']'); // ]字符出现的位置
+
+            var linenum=0;
+            while(indexleft !== -1 && indexright !== -1) {
+                var TCsave_nodelist_line=TCsave_nodelist_cache.substring(indexleft+1,indexright).split(",");
+                for (var i=0;i<TCsave_nodelist_line.length;i++)
                 {
                     //console.log("["+parseInt(i/20)+"]["+parseInt(i%20)+"]");
-                    TCnum_nodelist[parseInt(i/20)][parseInt(i%20)]=TCnum_nodelist_cache[i];
+                    TCsave_nodelist[linenum][parseInt(i%20)]=Number(TCsave_nodelist_line[i]);
                 }
-                for (var i=0;i<TCnum_nodenamelist_cache.length;i++)
+                linenum++;
+                indexleft = TCsave_nodelist_cache.indexOf('[',indexleft + 1); // 从字符串出现的位置的下一位置开始继续查找
+                indexright = TCsave_nodelist_cache.indexOf(']',indexright + 1); // 从字符串出现的位置的下一位置开始继续查找
+            }
+            //再来一遍，获取并保存结点的名称
+            linenum=0;
+            while(indexleftname !== -1 && indexrightname !== -1) {
+                var TCsave_nodelistname_line=TCsave_nodelistname_cache.substring(indexleftname+1,indexrightname).split(",");
+                for (var i=0;i<TCsave_nodelistname_line.length;i++)
                 {
                     //console.log("["+parseInt(i/20)+"]["+parseInt(i%20)+"]");
-                    TCnum_nodenamelist[parseInt(i/20)][parseInt(i%20)]=TCnum_nodenamelist_cache[i];
+                    TCsave_nodelistname[linenum][parseInt(i%20)]=TCsave_nodelistname_line[i];
                 }
-                console.log(TCnum_nodenamelist);
-                for(var k=0;k<testcasenum;k++)
+                linenum++;
+                indexleftname = TCsave_nodelistname_cache.indexOf('[',indexleftname + 1);
+                indexrightname = TCsave_nodelistname_cache.indexOf(']',indexrightname + 1);
+            }
+
+                for(var k=0;k<linenum;k++)
                 {
                     console.log("Start to set.");
-                    setButtons(TCnum_nodelist[k],k);
-                    setBtnBottomName(TCnum_nodenamelist[k],k)
+                    setButtons(TCsave_nodelist[k],k);
+                    setBtnBottomName(TCsave_nodelistname[k],k)
                 }
-                document.getElementById("node").innerText="已保存"+k+"个测试用例，有";
+            document.getElementById("node").innerText="已保存"+linenum+"个测试用例，有";
+                if(linenum==0){document.getElementById("node").innerText="未保存过测试用例，可在分析测试步骤-生成遍历路径中保存";}
+           /*旧的方法
+           setnodenamelist();//设置TCsave_nodenamelist映射表
+            setTimeout(function(){
+                for(var k=0;k<linenum;k++)
+                {
+                    console.log("Start to set name.");
+                    setBtnBottomName(TCsave_nodelist[k],k)
+                }
 
-            }
+            },2000);//延时等待*/
+
+
         }
         else{
             console.log("Not Saved.");
-            if(TCnum_nodenamelist_cache==null)//都为空的
+            if(TCsave_nodelistname_cache==null)//都为空的
             {
 
                 console.log("Queried.");
+                document.getElementById("node").innerText="未保存过测试用例，可在分析测试步骤-生成遍历路径中保存";
+
             }
         }
 
