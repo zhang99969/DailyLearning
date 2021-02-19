@@ -329,7 +329,9 @@
             document.getElementById("table-div-Log").style.display="";
 
             if(!ifgetLog){
-                var filelog="/d3js-neo4j-example-master/appcrawler.log"; //暂时使用，UTF-8
+                //var filelog="/d3js-neo4j-example-master/appcrawler.log"; //暂时使用，UTF-8
+                var filelog="http://127.0.0.1:8887"+"/IdeaProjects/20201231104305_gov.hgm.hgmeap/appcrawler.log";
+                //搭配Allow CORS: Access-Control-Allow-Origin 扩展程序
                 //$("#LogBox").load(filelog,LogSubstring());
                 //LogBoxCache
                 $("#LogBoxCache").load(filelog,function(response){
@@ -345,6 +347,7 @@
                     $('#LogBox').append($('<p></p>').text(filecontent));
                   //多次显示问题解决
                     ifgetLog=true;
+                    $("#LogBoxCache").empty();
                 });
                 }
 

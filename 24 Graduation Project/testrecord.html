@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>D3js test step page</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/font-awesome.min.css">
+    <!-- Custom styles for this template -->
+    <style type="text/css">
+        .table td, .table th {
+            padding: 12px;
+            vertical-align: top;
+            border-top: 1px solid #dee2e6;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row" style="height:70px; margin-bottom: 15px"; >
+        <div class="col col-10 col-md-10 form-inline" style="background-color:lavender;"><h1>分析测试记录和缺陷</h1></div>
+        <div class="col col-1 col-md-1 form-inline" style="background-color:lavender;">
+            <a href="query.html"><button type="button" class="btn btn-outline-primary" id="btnHome" style="background-color: white">
+                <i class="fa fa-home" aria-hidden="true"></i>
+            </button></a>
+        </div>
+        <div class="col col-1 col-md-1 form-inline" style="background-color:lavender;">
+            <a href="javascript:history.back(-1)"> <button type="button" class="btn btn-outline-primary" id="btnBack" style="background-color: white;">
+                <i class="fa fa-backward" aria-hidden="true"></i>
+            </button></a>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+
+    <div class="row" style="margin-left: 30px;margin-right: 50px" >
+        <h5><div id="node">记录和缺陷信息</div></h5>
+    </div> <hr/>
+    <div id="table-div-record" style="padding-bottom: 15px"  class="col col-12 col-md-12 " >
+        <div id="RecordBox" style="word-break:break-all; word-wrap:break-word;"></div>
+        <div id="RecordBoxCache" style="display:none;" ></div>
+    </div>
+    <hr/>
+    <div class="row" style="margin-left: 30px;margin-right: 50px" >
+        <h5><div id="node2">筛选</div></h5>
+    </div>
+    <div id="table-div-record2" style="padding-bottom: 15px"  class="col col-12 col-md-12 " >
+        <div id="RecordBox2" style="word-break:break-all; word-wrap:break-word;"></div>
+    </div>
+    <hr/>
+    <div class="row" style="margin-left: 30px;margin-right: 50px;margin-bottom: 10px" >
+        <h5><div id="node3">显示列表</div></h5>
+
+
+    <button type="button" class="btn btn-outline-primary btn-sm" id="btnUnfold" style="margin-left:50px;">
+        <i class="fa fa-folder-open" aria-hidden="true"></i> 展开
+    </button>
+        <button type="button" class="btn btn-outline-primary btn-sm" id="btnFold1" style="margin-left:50px;display:none;">
+            <i class="fa fa-folder" aria-hidden="true"></i> 隐藏
+        </button>
+    </div>
+    <div id="nodeInfoTable"   class="col col-12 col-md-12">
+        <table id="tableInfo" class="table table-hover" style="word-break:break-all;word-wrap:break-word;padding-right: 30px;display:none;"></table>
+    </div>
+
+    <button type="button" class="btn btn-outline-primary btn-sm" id="btnFold2" style="margin-left:80px;margin-bottom: 10px;display:none;">
+        <i class="fa fa-folder" aria-hidden="true"></i> 隐藏
+    </button>
+    </div>
+
+
+
+
+</div>
+
+
+
+<!-- jQuery first, then Popper.js, then Bootstrap JS -->
+
+<script src="js/jquery-3.3.1.min.js"></script>
+<script src="js/jquery.params.js"></script>
+<script src="js/popper.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="js/d3.v5.min.js"></script>
+<script src="js/d3js-example-neo4j.js"></script>
+<script type="text/javascript">
+    "use strict";
+
+    var neo4jNodeItm;
+    var neo4jAPIURL = 'http://localhost:7474/db/data/transaction/commit';
+    var datainfo =  " <table>";
+
+
+    var ifgetLog=false;
+
+
+    function openAll(){
+        document.getElementById("btnUnfold").style.display="none";
+        document.getElementById("tableInfo").style.display="";
+        document.getElementById("btnFold1").style.display="";
+        document.getElementById("btnFold2").style.display="";
+    }
+
+    function closeAll(){
+        document.getElementById("btnUnfold").style.display="";
+        document.getElementById("tableInfo").style.display="none";
+        document.getElementById("btnFold1").style.display="none";
+        document.getElementById("btnFold2").style.display="none";
+    }
+
+
+    function showSuite(){
+        /*
+                    var htmlobj=$.ajax({url:"http://127.0.0.1:8887/IdeaProjects/20201231104305_gov.hgm.hgmeap/appcrawler.log",async:false});
+
+                      var filenameChrome="http://127.0.0.1:8887"+"/IdeaProjects/20201231104305_gov.hgm.hgmeap"+"/"+nodeIndex+"_"+nodeName+".click.png";
+        */
+
+
+        if(!ifgetLog){
+            var filelog="http://127.0.0.1:8887"+"/IdeaProjects/20201231104305_gov.hgm.hgmeap/index.html";
+            console.log(filelog);
+            $("#RecordBoxCache").load(filelog,function(response){
+                var filecontent=response;
+               /* console.log(filecontent);           */
+                var indexstart="display-filters";
+                var indexend="table";
+                filecontent=filecontent.substring(filecontent.indexOf(indexstart),filecontent.lastIndexOf(indexend));
+                filecontent="<div id=\""+filecontent+"table>";
+              //  console.log(filecontent);
+               //$('#RecordBox').append(filecontent);
+
+               var filtercontent=filecontent;//checkbox部分
+                filtercontent=filtercontent.substring(filtercontent.indexOf("div"),filtercontent.indexOf("/div"));
+                filtercontent="<"+filtercontent+"/div>";
+
+                var tablecontent=filecontent;//表格table部分
+                tablecontent=tablecontent.substring(tablecontent.indexOf("table"),tablecontent.indexOf("/table"));
+                tablecontent="<"+tablecontent+"/table>";
+                var tablect=tablecontent;
+                //console.log(tablect);
+               while(tablect.indexOf("a href")!=-1)
+                {
+                    tablect=tablecontent.substring(0,tablecontent.indexOf("<a href"))+tablecontent.substring(tablecontent.indexOf("')\">")+4);//去掉名字前面的<a href... >
+                    //tablect=tablecontent.substring(0,tablecontent.indexOf("</a>"))+tablecontent.substring(tablecontent.indexOf("</a>"+4));//去掉名字后面的</a>>
+                    tablect=tablect.replace("</a>","");
+                    tablecontent=tablect;
+               //     console.log(tablect);
+                }
+
+/*
+                console.log(filtercontent);
+                console.log(tablecontent);*/
+            //    console.log(tablect);
+
+
+             //添加table-hover和加粗
+                tablecontent=tablecontent.replace("Suite","<strong>Suite</strong>")
+                tablecontent=tablecontent.replace("Duration (ms.)","<strong>Duration (ms.)</strong>")
+                tablecontent=tablecontent.replace("Succeeded","<strong>Succeeded</strong>")
+                tablecontent=tablecontent.replace("Failed","<strong>Failed</strong>")
+                tablecontent=tablecontent.replace("Canceled","<strong>Canceled</strong>")
+                tablecontent=tablecontent.replace("Ignored","<strong>Ignored</strong>")
+                tablecontent=tablecontent.replace("Pending","<strong>Pending</strong>")
+                tablecontent=tablecontent.replace("Total","<strong>Total</strong>")
+                tablecontent=tablecontent.replace("sortable","sortable table-hover")
+                $('#RecordBox').append(tablecontent);
+                filterDate(tablecontent); //过滤功能的数据准备
+
+               // filtercontent=filtercontent.replace("onchange","onpropertychange");
+                $('#RecordBox2').append(filtercontent);
+                ifgetLog=true;
+                $("#RecordBoxCache").empty();//清空
+            });
+        }
+    }
+    tagMap = {};
+/*    tagMap = {
+        "5d3570fc-2bc0-4472-b14b-db503084d561": 1,
+        "b991dc2d-dae0-4a50-8c35-e7f49ee38322": 1,
+    };*/
+    function filterDate(tablecontent)//计算表格内各种情况的数量
+    {
+        var tbc=tablecontent;
+        //console.log(tbc);
+        var tid;//如bdd1313c-c862-411f-b30f-4a01700809c8，长度确定
+
+        while(tbc.indexOf("id=\"")!=-1)
+        {
+            tid = tbc.substring(tbc.indexOf("id=\"") + 4, tbc.indexOf("id=\"") + 4 + 36);//length是从开始算起
+            tbc = tbc.substring(tbc.indexOf("id=\"") + 4 + 36);//截去前面的
+            tagMap[tid] = 0;
+            console.log(tid);
+            //  console.log(document.getElementById(tid));
+            for (var i = 2; i < 7; i++) {
+                var Num;
+                //Num=document.getElementById(tid).cells[2].childNodes[0];//返回"30"
+                Num = parseInt(document.getElementById(tid).cells[i].innerText);
+                if (Num > 0) {
+                    if(i==2)   tagMap[tid] |= 1;
+                    if(i==3)   tagMap[tid] |= 2;
+                    if(i==4)   tagMap[tid] |= 16;
+                    if(i==5)   tagMap[tid] |= 4;
+                    if(i==6)   tagMap[tid] |= 8;
+                }
+            }
+           // tagMap[tid] = tagMap[tid] - 1;//默认为1，多算了一次succeed列
+        }
+       // tagMap["5d3570fc-2bc0-4472-b14b-db503084d561"]=13; //suc ig pen MainActivity, not succeed canceled ignored
+       // tagMap["b991dc2d-dae0-4a50-8c35-e7f49ee38322"]=25;//suc pen can SecurityChangePwdActivity,not succeed ignored pending
+        // 以上两行测试用，违反直觉
+        //console.log(tagMap);
+    }
+
+
+    var nodeList=[];
+    var nodeidlist=[];
+    var nodename1list=[];
+    var nodename2list=[];
+
+    function setTableInfo(data)
+    {
+        for(var i=0;i<nodeList.length;i++)
+        {
+            data += "<tr>";
+            data += "<td style='width: 100px' rowspan=2><strong>结点" + nodeList[i] + "</td></strong>";
+            data += "<td><strong>"+nodename1list[i]+"</td>";
+            data += "</tr><tr >";
+            data += "</strong>";
+            data += "<td>"+nodename2list[i]+"</td>";
+            data += "</tr>";
+
+        }
+
+        data += "</table>";
+
+        document.getElementById("tableInfo").innerHTML = data;
+      //  console.log("-----"+data);
+
+    }
+
+    function getAllnode() {
+
+        var queryStr = 'match (n:PageWithES) return ID(n) order by n.clickedIndex';//获取所有结点的id
+        //   console.log(queryStr);
+        var jqxhr = $.post(neo4jAPIURL, '{"statements":[{"statement":"' + queryStr + '", "resultDataContents":["row"]}]}',
+            function (data) {
+                //   console.log(data);
+                if (data.results != null && data.results.length > 0 && data.results[0].data != null && data.results[0].data.length > 0) {
+                    var i = 0;
+                    var neo4jDataItmArray = data.results[0].data;
+                    //console.log(neo4jDataItmArray);
+                    neo4jDataItmArray.forEach(dataItem => {
+                        nodeList[i] = dataItem.row[0];//得到
+                        i++;
+                        //console.log(nodeList);
+                    });
+                }
+            }, 'json');
+        //console.log(nodeList);
+        setTimeout(function(){ ShowAllnode() },500);//延时等待
+    }
+    var j=0;
+    function ShowAllnode() {//这段代码放到getAllnode中会由于并行运行导致nodeList为空
+        for(var i=0;i<nodeList.length;i++)//对每个结点信息的获取与展示
+        {
+            var queryStr =  'match (n)  where id(n) = ' + nodeList[i] + ' return n';
+             //console.log(queryStr);
+            var jqxhr = $.post(neo4jAPIURL, '{"statements":[{"statement":"' + queryStr + '", "resultDataContents":["graph"]}]}',
+                function(data) {
+                    if (data.results != null && data.results.length > 0 && data.results[0].data != null && data.results[0].data.length > 0) {
+                        var neo4jDataItmArray = data.results[0].data;
+                        neo4jDataItmArray.forEach(dataItem =>  {//不是index，只取每个的第一项
+                            neo4jNodeItm=dataItem.graph.nodes[0]
+                           // console.log(neo4jNodeItm);
+
+                            var name=neo4jNodeItm.properties.ElementStoreName;
+                            nodename1list[j]=name;
+                           // console.log(nodename1list);
+                            var name2="clickedIndex="+neo4jNodeItm.properties.clickedIndex+" action="+neo4jNodeItm.properties.action+" xpath="+neo4jNodeItm.properties.Elements_xpath;
+                            nodename2list[j]=name2;
+                            j++;
+
+                        });
+                    }
+                }, 'json');
+        }
+        setTimeout(function(){ setTableInfo(datainfo) },500);//延时等待
+
+    }
+    var tagMap = {};
+    var SUCCEEDED_BIT = 1;
+    var FAILED_BIT = 2;
+    var CANCELED_BIT = 16;
+    var IGNORED_BIT = 4;
+    var PENDING_BIT = 8;//和原版顺序不同
+
+    function applyFilter() {
+        var mask = 0;
+        if (document.getElementById('succeeded_checkbox').checked)
+            mask |= SUCCEEDED_BIT;//按位或．然后赋值．
+        if (document.getElementById('failed_checkbox').checked)
+            mask |= FAILED_BIT;
+        if (document.getElementById('ignored_checkbox').checked)
+            mask |= IGNORED_BIT;
+        if (document.getElementById('pending_checkbox').checked)
+            mask |= PENDING_BIT;
+        if (document.getElementById('canceled_checkbox').checked)
+            mask |= CANCELED_BIT;
+        console.log(mask);
+        for (var key in tagMap) {
+            if (tagMap.hasOwnProperty(key)) {
+                var bitSet = tagMap[key];
+                var element = document.getElementById(key);
+                console.log(bitSet);
+                console.log(element);
+                if ((bitSet & mask) != 0)
+                {element.style.display = "table-row"; console.log("1111")}
+                else
+                {element.style.display = "none";}
+            }
+        }
+    }
+
+
+
+
+
+    $('#btnUnfold').click(            function() {openAll()}            );
+    $('#btnFold1').click(            function() {closeAll()}            );
+    $('#btnFold2').click(            function() {closeAll()}            );
+
+
+    //Page Init
+    $(function() {
+        var neo4jLogin = 'neo4j';
+        var neo4jPassword = 'password';
+        var datainfo =  " <table>";
+
+
+        setupNeo4jLoginForAjax(neo4jLogin, neo4jPassword);
+        showSuite();
+
+        getAllnode();
+
+    });
+</script>
+</body>
+</html>

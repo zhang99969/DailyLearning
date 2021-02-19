@@ -32,13 +32,45 @@
     <div class="row" style="margin-left: 30px;margin-right: 50px" >
         <div class="col col-9 col-md-9 form-inline"><h5><div id="node">共 个测试用例，有</div></h5></div>
         <div class="col col-3 col-md-3 form-inline" style="position: relative;">
-        <button type="button" class="btn btn-outline-primary btn-sm" id="btnRefresh" style="position:absolute;right:0px;float:right;width:150px" >
+            <button type="button" class="btn btn-outline-primary btn-sm" id="btnUnfold" style="position:absolute;right:0px;float:right;margin-right:200px;">
+                <i class="fa fa-align-right" aria-hidden="true"></i> 高级选项
+            </button>
+            <button type="button" class="btn btn-outline-primary btn-sm" id="btnRefresh" style="position:absolute;right:0px;float:right;width:150px" >
             <i class="fa fa-refresh" aria-hidden="true"></i> 手动刷新结果
         </button>
         </div>
+
+    </div>
+    <div class="col col-12 col-md-12" id="hr1" style="">
+        <hr/>
+    </div>
+    <div id="advanced" class="row" style="display:none;margin-left: 30px;margin-right: 50px;vertical-align:middle;" >
+
+        <div class="col col-2 col-md-2 form-inline" style="margin-bottom: 1px">
+            显示总数量
+            <input type="text" class="form-control form-control-sm" size="40px" style="margin-left:10px;width: 50px;" id="queryNum" onfocus="this.select()"   /> </div>
+        <div class="col col-1 col-md-1 form-inline"></div>
+        <div class="col col-2 col-md-2 form-inline" style="margin-bottom: 1px">
+            起始结点clickedIndex
+            <input type="text" class="form-control form-control-sm" size="40px" style="margin-left:10px;width:50px;" id="queryStart" onfocus="this.select()"   /></div>
+        <div class="col col-1 col-md-1 form-inline"></div>
+        <div class="col col-2 col-md-2 form-inline"></div>
+        <div class="col col-4 col-md-4 form-inline">
+            <button type="button" class="btn btn-outline-primary btn-sm" id="btnFold" style="position:absolute;right:0px;float:right;width:150px;width:90px;margin-right:200px" >
+                <i class="fa fa-folder " aria-hidden="true"></i> 收起
+            </button>
+                <button type="button" class="btn btn-outline-primary btn-sm" id="btnConfirm" style="position:absolute;right:0px;float:right;width:150px;width:90px;" >
+                    <i class="fa fa-indent" aria-hidden="true"></i> 确定
+                </button>
+        </div>
+
+        <div class="col col-12 col-md-12" id="graphContainer" style="padding-right: 0px;padding-top: 10px">
+        </div>
+        <div class="col col-12 col-md-12" id="hr2" style="padding-right: 0px;padding-top: 0px">
+            <hr/>
+        </div>
     </div>
 
-    <hr  />
 
     <div id="nodegraph" style="margin-left: 30px;margin-right: 50px">    </div>
 
@@ -58,10 +90,11 @@
 <script type="text/javascript">
     "use strict";
     var testcasenum=20;//可以查询到的数量限制
+    var clickedIndex=0;
     var neo4jAPIURL = 'http://localhost:7474/db/data/transaction/commit';
     var TCnum_nodelist = new Array();//TestCaseNum
     var TCnum_nodenamelist = new Array();
-    for(var k=0;k<testcasenum;k++)
+    for(var k=0;k<testcasenum;k++)//testcasenum变量不要放到后面去，会初始化失败
     {
         TCnum_nodelist[k]=new Array();
         TCnum_nodenamelist[k]=new Array();
@@ -188,6 +221,11 @@
     {
         document.getElementById("node").innerText="共"+k+"个测试用例，有";
 
+        if(TCnum_nodelist[0][0]=="-1")//可能是clickedIndex输入错误
+        {
+            promptAlert($('#graphContainer'), '错误：请输入存在的clickedIndex ', true);
+        }
+
         sessionStorage.setItem('TCnum_nodelist',TCnum_nodelist);
         sessionStorage.setItem('TCnum_nodenamelist',TCnum_nodenamelist);//
 
@@ -203,11 +241,28 @@
         window.location.reload();
     }
 
+    function reFresh2()//设定参数后刷新
+    {
+
+        sessionStorage.removeItem('TCnum_nodelist');
+        sessionStorage.removeItem('TCnum_nodenamelist'); //清空，初始化时获取不到TCnum_nodelist和TCnum_nodenamelist信息后会重新查询
+        testcasenum=$.trim($('#queryNum').val());
+        clickedIndex=$.trim($('#queryStart').val());
+        if(testcasenum<1||testcasenum>20) {
+            promptAlert($('#graphContainer'), '错误：总数量范围为2~20 ', true);
+            return;
+        }
+        sessionStorage.setItem('testcasenum',testcasenum.toString());
+        sessionStorage.setItem('clickedIndex',clickedIndex.toString());
+        sessionStorage.setItem('keepunfold',true);
+        window.location.reload();
+    }
 
 
-    function submitQuery(clickedIndex) {
-        var queryStr =  'MATCH p=(:PageWithES{clickedIndex:' + clickedIndex + '})-[*2..8]->(b:PageWithES) UNWIND NODES(p) AS n WITH p,b, SIZE(COLLECT(DISTINCT n)) AS testLength WHERE testLength = LENGTH(p)+1 RETURN p ORDER BY length(p) limit '+testcasenum;
+    function submitQuery(clckIndex) {
+        var queryStr =  'MATCH p=(:PageWithES{clickedIndex:' + clckIndex + '})-[*2..8]->(b:PageWithES) UNWIND NODES(p) AS n WITH p,b, SIZE(COLLECT(DISTINCT n)) AS testLength WHERE testLength = LENGTH(p)+1 RETURN p ORDER BY length(p) limit '+testcasenum;
         // var queryStr =  'MATCH p=(a:PageWithES)-[*2..8]->(b:PageWithES) Where a.clickedIndex=' + clickedIndex + ' UNWIND NODES(p) AS n WITH p, SIZE(COLLECT(DISTINCT n)) AS testLength WHERE testLength = LENGTH(p)+1 RETURN p ORDER BY length(p) limit 20'
+        console.log(queryStr);
         var jqxhr = $.post(neo4jAPIURL, '{"statements":[{"statement":"' + queryStr + '", "resultDataContents":["row"]}]}',
             function(data) {
                 console.log(data);
@@ -218,9 +273,8 @@
                         j=0;
                       // console.log("______");
                         var neo4jNodeItm=dataItem.meta[0];
-                        //console.log(neo4jNodeItm);
+                       // console.log(neo4jNodeItm);
                         neo4jNodeItm.forEach(function (meta,index) {
-                          //  console.log(meta.id);
                             if(index%2==0){//不存储，跳过关系信息
                                 TCnum_nodelist[k][j]=meta.id;
                             j++;
@@ -244,16 +298,35 @@
 
         setTimeout(function(){ dataSave() },500);//延时等待
     }
-/*    function deepcopy(obj) {//不可用，拷贝后每项目只有一个字符
-        var out = [],i = 0,len = obj.length;
-        for (; i < len; i++) {
-            if (obj[i] instanceof Array){
-                out[i] = deepcopy(obj[i]);
+
+
+    function showAdvanced() //高级选项，数量和起点
+    {
+        document.getElementById("advanced").style.display="";
+        document.getElementById("btnUnfold").disabled=true;
+    }
+
+
+    function hideAdvanced() //隐藏高级选项
+    {
+        document.getElementById("advanced").style.display="none";
+        document.getElementById("btnUnfold").disabled=false;
+    }
+
+
+
+    /*    function deepcopy(obj) {//不可用，拷贝后每项目只有一个字符
+            var out = [],i = 0,len = obj.length;
+            for (; i < len; i++) {
+                if (obj[i] instanceof Array){
+                    out[i] = deepcopy(obj[i]);
+                }
+                else out[i] = obj[i];
             }
-            else out[i] = obj[i];
-        }
-        return out;
-    }*/
+            return out;
+        }*/
+
+
 
     //Page Init
     $(function() {
@@ -262,7 +335,33 @@
 
         var TCnum_nodelist_cache=sessionStorage.getItem('TCnum_nodelist');//getItem为一串字符
         var TCnum_nodenamelist_cache=sessionStorage.getItem('TCnum_nodenamelist');
-        if(TCnum_nodelist_cache!=null)//如果非第一次进入页面，已经保存过数据
+
+        $("#queryNum").val("20");//默认
+        $("#queryStart").val("0");
+
+        if(sessionStorage.getItem('testcasenum')!=null &&sessionStorage.getItem('clickedIndex')!=null ) {//输入框内记忆数字、并修改参数值
+            testcasenum = parseInt(sessionStorage.getItem('testcasenum'));
+            clickedIndex=parseInt(sessionStorage.getItem('clickedIndex'));
+            $("#queryNum").val(sessionStorage.getItem('testcasenum'));
+            $("#queryStart").val(sessionStorage.getItem('clickedIndex'));
+        }
+
+        console.log(testcasenum)
+        console.log(clickedIndex)
+
+
+        if(sessionStorage.getItem('keepunfold')=="true")// "true",not true //已经被展开后点击确定刷新后仍然展开
+        {
+            console.log("yes");
+            document.getElementById("advanced").style.display="";
+            document.getElementById("btnUnfold").disabled=true;
+           // document.getElementById("btnUnfold").click(); //没效果
+          //  $("#btnUnfold").trigger("click");//没效果
+        }
+
+
+
+        if(TCnum_nodelist_cache!=null&&TCnum_nodelist_cache!="")//如果非第一次进入页面，已经保存过数据
         {   console.log("Already Saved.");
             if(TCnum_nodenamelist_cache!=null)//都保存了数据
             {
@@ -304,16 +403,20 @@
         }
         else{
             console.log("Not Saved.");
-            if(TCnum_nodenamelist_cache==null)//都为空的
+            if(TCnum_nodenamelist_cache==null||TCnum_nodelist_cache[0][0]==-1)//都为空的
             {
                 setupNeo4jLoginForAjax(neo4jLogin, neo4jPassword);//进行查询
-                submitQuery(1);//clickedindex为1的结点
+                submitQuery(clickedIndex);//clickedindex为0的结点
                 console.log("Queried.");
             }
         }
 
 
         $('#btnRefresh').click(            function() {reFresh()}            );
+        $('#btnUnfold').click(            function() {showAdvanced()}            );
+        $('#btnConfirm').click(            function() {reFresh2()}            );
+        $('#btnFold').click(            function() {hideAdvanced()}            );
+
 
     });
 </script>

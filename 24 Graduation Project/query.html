@@ -4,10 +4,10 @@
   <!-- Required meta tags -->
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="A d3js example for neo4j">
+  <meta name="description" content="移动应用的测试可视化系统 - A D3JS work with Neo4j">
   <meta name="author" content="z">
 
-  <title>D3js Example for Neo4j</title>
+  <title>移动应用的测试可视化系统 - A D3JS work with Neo4j</title>
 
   <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="css/bootstrap.min.css">
@@ -106,6 +106,9 @@
 <script type="text/javascript">
   "use strict";
 
+
+
+
   //######################### const #########################
   var graphWidth =(document.documentElement.clientWidth-15)/12*11;// 1024; //default
   var graphHeight = 450;
@@ -141,10 +144,29 @@
   var itemColorMap = {};
   var colorScale = d3.scaleOrdinal(d3.schemeSet2);
 
-  var drag_handler = d3.drag()
+/*
+  var drag_handler = d3.drag()//拖拽后不回弹
           .on('start', drag_start)
           .on('drag', drag_move)
           .on('end', drag_end);
+*/
+
+  var drag_handler = d3.drag()//拖拽后回弹
+          .on('start', d => {
+            if (!this.d3.event.active) d3Simulation.alphaTarget(0.3).restart()
+            d.fx = this.d3.event.x
+            d.fy = this.d3.event.y
+          })
+          .on('drag', d => {
+            d.fx = this.d3.event.x
+            d.fy = this.d3.event.y
+          })
+          .on('end', d => {
+            if (!this.d3.event.active) d3Simulation.alphaTarget(0)
+            d.fx = null
+            d.fy = null
+          });
+
 
   var zoom_handler = d3.zoom()
           .filter(function() {
@@ -245,8 +267,8 @@
     circleText.attr('transform', transform);
   }
 
-  function transformPathLabel(d) {
-    var sourceX = d.source.x + ((d.target.x - d.source.x) / 2);
+  function transformPathLabel(d) {//关系上的文字位置
+    var sourceX = d.source.x + ((d.target.x - d.source.x) / 2)
     var sourceY = d.source.y + ((d.target.y - d.source.y) / 2);
     return 'translate(' + sourceX + ',' + sourceY + ')';
   }
@@ -266,13 +288,14 @@
     cosTheta = dist==0?0:deltaX / dist;
     sinTheta = dist==0?0:deltaY / dist;
     //console.log("dist="+dist+" cos0="+cosTheta+" sin0="+sinTheta);//有的出现了NaN,因为结点不再移动dist=0
+    //箭头的线段部分
     sourceX = d.source.x + (circleSize * cosTheta);
     sourceY = d.source.y + (circleSize * sinTheta);
     targetX = d.target.x - (circleSize * cosTheta);
     targetY = d.target.y - (circleSize * sinTheta);
 
     //Not use marker as IE does not support it and so embed the arrow in the path directly
-    var arrowLeftX, arrowLeftY, arrowRightX, arrowRightY;
+    var arrowLeftX, arrowLeftY, arrowRightX, arrowRightY;//箭头的三角部分
 
     arrowLeftX = targetX - (arrowHeight * sinTheta) - (arrowWidth * cosTheta);
     arrowLeftY = targetY + (arrowHeight * cosTheta) - (arrowWidth * sinTheta);
@@ -282,9 +305,14 @@
     // console.log("deltaX="+deltaX+"deltaY="+deltaY+'M' + sourceX + ' ' + sourceY + ' L' + targetX + ' ' + targetY
     //         + ' L' + arrowLeftX + ' ' + arrowLeftY + ' L' + arrowRightX + ' ' + arrowRightY + ' Z');
     //deltaX=119.83110847864072deltaY=-114.77175298122802M-514.1579521293042 -376.09107411799016 L-437.6581271750179 -449.3610214983528 L-440.72982720232375 -438.1109255457731 L-449.0301883224968 -446.777182250644 Z
-    return 'M' + sourceX + ' ' + sourceY + ' L' + targetX + ' ' + targetY
+   /* return 'M' + sourceX + ' ' + sourceY + ' L' + targetX + ' ' + targetY
             + ' M' + targetX + ' ' + targetY + ' L' + arrowLeftX + ' ' + arrowLeftY
-            + ' L' + arrowRightX + ' ' + arrowRightY + ' Z';
+            + ' L' + arrowRightX + ' ' + arrowRightY + ' Z';*///箭头
+    return  'M' +sourceX +',' +sourceY +'A' +dist +',' + dist +' 0 0,1 ' +targetX +',' +targetY;//弧线
+   // return  'M' +sourceX +',' +sourceY +'A' +dist +',' + dist +' 0 0,1 ' +targetX +',' +targetY+' L' + arrowLeftX + ' ' + arrowLeftY + ' L' + arrowRightX + ' ' + arrowRightY + ' Z';//带箭头的弧线
+//2020.9.18待修改____
+
+
   }
 
   function clearProperties() {
@@ -322,6 +350,7 @@
 
   }
 
+
   function updateGraph() {
     var d3LinkForce = d3.forceLink()
             .distance(linkForceSize)
@@ -329,10 +358,10 @@
             .id(function(d) {return d.id;});
 
     d3Simulation = d3.forceSimulation()
-            //.force('chargeForce', d3.forceManyBody())//.strength(-300)
-            .force('collideForce', d3.forceCollide(collideForceSize))
+            //.force('chargeForce', d3.forceManyBody().strength(-100))//吸引力
+            .force('collideForce', d3.forceCollide(collideForceSize))//碰撞效果，引力半径
             .nodes(mapToArray(nodeItemMap))
-            .force('linkForce', d3LinkForce);
+            .force('linkForce', d3LinkForce);//连接力
 
     circles = d3.select('#circle-group').selectAll('circle')
             .data(d3Simulation.nodes(), function(d) {return d.id;});
@@ -382,6 +411,13 @@
     lines.exit().remove();
     lines = lines.enter().append('path')
             //.attr('marker-end', 'url(#end-arrow)')
+            .attr('class', function(d) {
+              return 'link ' + d.type
+            })
+            .attr('marker-end', function(d) {
+              return 'url(#' + d.type + ')'
+            })
+            //2020.9.18待修改____
             .on('mouseover', function(d) {
               showProperties(d,false);
             })

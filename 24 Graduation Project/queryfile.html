@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>D3js test step page</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/font-awesome.min.css">
+    <!-- Custom styles for this template -->
+
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row" style="height:70px; margin-bottom: 15px"; >
+        <div class="col col-10 col-md-10 form-inline" style="background-color:lavender;"><h1>测试用例数量</h1></div>
+        <div class="col col-1 col-md-1 form-inline" style="background-color:lavender;">
+            <a href="query.html"><button type="button" class="btn btn-outline-primary" id="btnHome" style="background-color: white">
+                <i class="fa fa-home" aria-hidden="true"></i>
+            </button></a>
+        </div>
+        <div class="col col-1 col-md-1 form-inline" style="background-color:lavender;">
+            <a href="javascript:history.back(-1)"> <button type="button" class="btn btn-outline-primary" id="btnBack" style="background-color: white;">
+                <i class="fa fa-backward" aria-hidden="true"></i>
+            </button></a>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+
+
+</div>
+
+
+
+<!-- jQuery first, then Popper.js, then Bootstrap JS -->
+
+<script src="js/jquery-3.3.1.min.js"></script>
+<script src="js/jquery.params.js"></script>
+<script src="js/popper.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="js/d3.v5.min.js"></script>
+<script src="js/d3js-example-neo4j.js"></script>
+<script type="text/javascript">
+    "use strict";
+
+    function Person(name){
+        this.name = name;
+        if(Person.prototype.say == undefined){
+            Person.prototype.say = function(){
+                alert("I am "+this.name);
+            }
+        }
+    }
+    var p1 = new Person("wang");
+    var p2 = new Person("li");
+    p1.say();
+    p2.say();
+    alert(p1.say==p2.say); //true
+
+
+    public class AcElements {
+
+        private String url;
+        private String tag;
+        private String id;
+        private String name;
+        private String text;
+        private String instance;
+        private String depth;
+        private String valid;
+        private String selected;
+        private String xpath;
+        private String ancestor;
+        private String action;
+        private Integer x;
+        private Integer y;
+        private Integer width;
+        private Integer height;
+        public String toString() {
+            return "ElementStore {StoreName:" + getName() + "|url:" + getUrl() + "|height:" + getHeight() + "}";
+        }
+
+    }
+
+    public class AcElementStore {
+
+        @Id
+        @GeneratedValue
+        private Long id;
+        private Long reportid;
+        private String elementStoreName;
+        private String reqDom;
+        private String resDom;
+        private String reqHash;
+        private String resHash;
+        private String reqImg;
+        private String resImg;
+        private String reqTime;
+        private String resTime;
+        private String action;
+        private int clickedIndex;
+        private AcElements element;
+
+
+        public String toString() {
+            return "ElementStore {StoreName:" + getElementStoreName() + "|reqHash:" + getReqHash() + "|element:" + element.toString() + "}";
+        }
+        public String toString2() {
+            return "ElementStore {StoreName:" + getElementStoreName() + "|reqHash:" + getReqHash() + "}";
+        }
+        public String toString3() {
+            return getElement().getAncestor();
+        }
+
+    }
+
+    function Person(name){
+        this.name = name;
+        if(Person.prototype.say == undefined){
+            Person.prototype.say = function(){
+                alert("I am "+this.name);
+            }
+        }
+    }
+    var p1 = new Person("wang");
+    var p2 = new Person("li");
+    p1.say();
+    p2.say();
+    alert(p1.say==p2.say); //true
+
+
+    Map<Integer,AcElements> getYamlclickedAcElementsListWithClass(String YML)    {
+        Map<Integer,AcElements> mapout = new  HashMap();//获取每个的url数据
+        int mapoutnum=0;//数量
+        try {
+            Yaml yaml = new Yaml();
+            File f = new File(YML);
+            if (f != null) {
+                //获取test.yaml文件中的配置数据，转换为Map
+                Map<String, List<Map<String,Object>>> map =(Map)yaml.load(new FileInputStream(f));//第一层，最外层
+                //通过map取值
+                List<Map<String,Object>> list = map.get("clickedElementsList");//第二层
+                //list为[{url=com.zol.android.首页, tag=Start , action=_Start}, {url=Steps, tag=android.widget.TextView, action=click}]
+                for(Map<String,Object> map2 : list){//第三层
+                    AcElements e =new AcElements();
+                    e.setUrl(map2.get("url").toString());
+                    e.setTag(map2.get("tag").toString());
+                    e.setId(map2.get("id").toString());
+                    e.setName(map2.get("name").toString());
+                    e.setText(map2.get("text").toString());
+                    e.setInstance(map2.get("instance").toString());
+                    e.setDepth(map2.get("depth").toString());
+                    e.setValid(map2.get("valid").toString());
+                    e.setSelected(map2.get("selected").toString());
+                    e.setXpath(map2.get("xpath").toString());
+                    e.setAncestor(map2.get("ancestor").toString());
+                    e.setAction(map2.get("action").toString());
+                    e.setX(Integer.valueOf(map2.get("x").toString()));
+                    e.setY(Integer.valueOf(map2.get("y").toString()));
+                    e.setWidth(Integer.valueOf(map2.get("width").toString()));
+                    e.setHeight(Integer.valueOf(map2.get("height").toString()));
+                    mapout.put(mapoutnum,e);
+                    mapoutnum++;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        //System.out.println(mapout);
+        return mapout;
+    }
+
+    Map<Integer,AcElementStore> getYamlAcElementStoreMapWithClass(String YML,long reptId)    {
+        Map<Integer,AcElementStore> mapout = new  HashMap();//获取每个的url数据
+        int mapoutnum=0;//数量
+        try {
+            Yaml yaml = new Yaml();
+            File f = new File(YML);
+            if (f != null) {
+                Map<String, Map<String,Map<String,Object>>> map =(Map)yaml.load(new FileInputStream(f));//第一层，最外层，还带有clickedAcElementsList
+                Map<String,Map<String,Object>> map2=map.get("elementStoreMap");//第二层
+                Iterator<Map.Entry<String ,Map<String,Object>>>  it2 = map2.entrySet().iterator();
+                while (it2.hasNext()) {
+                    //it.next()获取嵌套对象
+                    Map.Entry<String,Map<String ,Object>> map3= it2.next();//第三层
+                    AcElementStore es =new AcElementStore();
+                    es.setElementStoreName(map3.getKey());
+                    es.setReportid(reptId);
+                    es.setReqDom(map3.getValue().get("reqDom").toString());
+                    es.setResDom(map3.getValue().get("resDom").toString());
+                    es.setReqHash(map3.getValue().get("reqHash").toString());
+                    es.setResHash(map3.getValue().get("resHash").toString());
+                    es.setReqImg(map3.getValue().get("reqImg").toString());
+                    es.setResImg(map3.getValue().get("resImg").toString());
+                    es.setReqTime(map3.getValue().get("reqTime").toString());
+                    es.setResTime(map3.getValue().get("resTime").toString());
+                    es.setClickedIndex(Integer.valueOf(map3.getValue().get("clickedIndex").toString()));
+                    es.setAction(map3.getValue().get("action").toString());
+                    Map<String,Object> map6= getStringToMap(map3.getValue().get("element").toString());//使用了string分割转成map的方法
+                    AcElements e =new AcElements();
+                    e.setUrl(map6.get("url").toString());
+                    e.setTag(map6.get("tag").toString());
+                    e.setId(map6.get("id").toString());
+                    e.setName(map6.get("name").toString());
+                    e.setText(map6.get("text").toString());
+                    e.setInstance(map6.get("instance").toString());
+                    e.setDepth(map6.get("depth").toString());
+                    e.setValid(map6.get("valid").toString());
+                    e.setSelected(map6.get("selected").toString());
+                    e.setXpath(map6.get("xpath").toString());
+                    e.setAncestor(map6.get("ancestor").toString());
+                    e.setAction(map6.get("action").toString());
+                    e.setX(Integer.valueOf(map6.get("x").toString()));
+                    e.setY(Integer.valueOf(map6.get("y").toString()));
+                    e.setWidth(Integer.valueOf(map6.get("width").toString()));
+                    e.setHeight(Integer.valueOf(map6.get("height").toString()));
+                    es.setElement(e);
+                    mapout.put(mapoutnum,es);
+                    mapoutnum++;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        // System.out.println("=================");
+        return mapout;
+
+    }
+
+    Map<Integer,AcElementStore> getOrderFromClickElmentAndgetInfoFromElementStore(Map<Integer,AcElements> mapCE,Map<Integer,AcElementStore> mapES) {
+        Map<Integer,AcElementStore> mapout = new  HashMap();
+        int num=0;
+
+        for(AcElements mapce : mapCE.values()){//遍历ClickElment的map
+            //     System.out.println(mapce);
+            String ancestorCE =mapce.getAncestor();
+            for(AcElementStore mapes : mapES.values()){//遍历AcElementStore的map
+                //         System.out.println(mapes);
+                String ancestorES =mapes.getElement().getAncestor();
+                if(ancestorCE.equals(ancestorES))//两者的ances相同
+                {
+                    mapout.put(num,mapes);
+                    num++;
+                    break;
+                }
+            }
+        }
+
+        return mapout;
+    }
+
+
+    ArrayList<AcJumpToWithES> creatRalationByNodeWithElementStoreMap(Map<Integer, AcElementStore> ESlist,long reptId){//图中的节点按顺序连接
+        int CallNum=1;//访问的顺序
+        ArrayList<AcJumpToWithES> Jumpto = new ArrayList();//关系列表
+        for (int num=0; num<ESlist.size()-1; num++) {
+            // boolean hasRela=false;
+            //System.out.println(ESlist.get(num));
+            AcJumpToWithES AcTes = new AcJumpToWithES(ESlist.get(num), ESlist.get(num+1));//第一条关系
+            int Index = Search(Jumpto,AcTes.getStartNode().getElementStoreName(),AcTes.getEndNode().getElementStoreName());
+            if(Index>-1)//如果关系已存在
+            {
+                AcTes.setCallNum(Jumpto.get(Index).getCallNum()+String.valueOf(CallNum)+",");
+                CallNum=CallNum+1;
+                AcTes.setCallTime(Jumpto.get(Index).getCallTime()+1);
+                //  System.out.println(AcTes.getStartNode().getElementStoreName()+"→"+AcTes.getEndNode().getElementStoreName()+" 连接已存在");
+                Jumpto.set(Index,AcTes);
+            }
+            else
+            {
+                //   hasRela=false;
+                AcTes.setJumpByWithES("跳转到");
+                AcTes.setCallNum(String.valueOf(CallNum)+",");
+                CallNum=CallNum+1;
+                AcTes.setCallTime(1);
+                AcTes.setReportId(reptId);
+                Jumpto.add(AcTes);
+                // System.out.println(AcTes.getStartNode().getElementStoreName()+"→"+AcTes.getEndNode().getElementStoreName()+" 已连接");
+            }
+
+        }
+
+        return Jumpto;
+    }
+
+    ArrayList<AcJumpToWithES> parsetoGetJump(yamlDir, yamlPath,reptId)
+    {
+
+        AcToYamlUtil ty2 = new AcToYamlUtil();
+
+        var path = yamlDir;
+        if(StringUtils.isEmpty(yamlPath)){
+            path = yamlDir + "\\elements.yml";
+        }
+        else{path = yamlDir+yamlPath;}
+
+        //System.out.println(path);
+        //获取clickedElements并保存到Elements类中
+        Map<Integer, AcElements> clkMap=ty2.getYamlclickedAcElementsListWithClass(path);
+        //读取AcElements.yml文件的AcElementStore并尝试在图中建立结点
+        Map<Integer, AcElementStore> esMap=ty2.getYamlAcElementStoreMapWithClass(path,reptId);
+        //按照clickedAcElements中的顺序填充数据
+        Map<Integer,AcElementStore>  ordMap= getOrderFromClickElmentAndgetInfoFromElementStore(clkMap,esMap);
+
+        //ArrayList<AcElementStore> AcEs =addNodeWithElementStoreMap(ordMap);//没有用，白写了
+        //ArrayList<AcJumpToWithES> JumpTo=creatRalationByNodeWithElementStoreMap(AcEs,reptId);//创建节点间关系
+        ArrayList<AcJumpToWithES> JumpTo=creatRalationByNodeWithElementStoreMap(ordMap,reptId);//创建节点间关系
+        //return JumpTo;
+
+    }
+
+
+    //Page Init
+    $(function() {
+        var neo4jLogin = 'neo4j';
+        var neo4jPassword = 'password';
+
+        var TCnum_nodelist_cache=sessionStorage.getItem('TCnum_nodelist');//getItem为一串字符
+        var TCnum_nodenamelist_cache=sessionStorage.getItem('TCnum_nodenamelist');
+
+
+        ArrayList<AcJumpToWithES> list=parsetoGetJump(y20201231104305,"\\elements.yml",0);
+        console.log(list);
+
+    });
+</script>
+</body>
+</html>

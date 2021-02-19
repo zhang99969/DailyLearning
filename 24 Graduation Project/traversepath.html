@@ -61,7 +61,7 @@
                         <i class="fa fa-search" aria-hidden="true"></i> 分析该测试用例
                     </button>
                     <button type="button" class="btn btn-outline-primary btn-sm" id="btnSave" style="margin-left:50px;">
-                        <i class="fa fa-floppy-o" aria-hidden="true"></i> 保存？
+                        <i class="fa fa-floppy-o" aria-hidden="true"></i> 保存
                     </button>
                 </div>
         </div>
@@ -467,6 +467,10 @@
                 document.getElementById("btnShowcase").disabled=false;
                 document.getElementById("btnSave").disabled=false;},5000);//延时等待
         }
+        else if(checklist[2]==true&&checklist[0]!=true&&checklist[1]!=true)//只勾选第三项
+        {
+            //算法待做
+        }
 
 
         if(success&&longer!=true) {
@@ -513,10 +517,10 @@
             var indexright = TCsave_nodelist_cache.indexOf(']'); // ]字符出现的位置
 
             while(indexleft !== -1 && indexright !== -1) {//只判断结点id，如果重复说明name的list也重复
-            //    console.log(indexleft);
-            //    console.log(indexright);
-           ///     console.log(TCsave_nodelist_cache.substring(indexleft+1,indexright));
-          //      console.log(TP_nodelist.toString() );
+                console.log(indexleft);
+                console.log(indexright);
+                console.log(TCsave_nodelist_cache.substring(indexleft+1,indexright));
+                console.log(TP_nodelist.toString() );
                 if(TCsave_nodelist_cache.substring(indexleft+1,indexright) ==TP_nodelist.toString() )//该字符串已经保存过了
                 {
                     console.log("已保存过，本次不保存");
@@ -557,7 +561,7 @@
     }
 
     function submitQueryForShorest(nodeID) {
-        var queryStr =  'MATCH p=shortestPath((a:PageWithES{clickedIndex:1})-[*]->(b:PageWithES)) where id(b) =' + nodeID + '  return p;';
+        var queryStr =  'MATCH p=shortestPath((a:PageWithES{clickedIndex:0})-[*]->(b:PageWithES)) where id(b) =' + nodeID + '  return p;';
         var jqxhr = $.post(neo4jAPIURL, '{"statements":[{"statement":"' + queryStr + '", "resultDataContents":["row"]}]}',
             function(data) {
                 console.log("data is");
@@ -591,7 +595,7 @@
             }, 'json');
     }
     function submitQueryForLonger(nodeID) {//最大长度为13，约5秒响应，修改下面一行中的数字修改
-        var queryStr =  'MATCH p=(:PageWithES{clickedIndex:1})-[*2..13]->(b:PageWithES)  where id(b)='+nodeID+' UNWIND NODES(p) AS n WITH p,b, SIZE(COLLECT(DISTINCT n)) AS testLength WHERE testLength = LENGTH(p)+1 RETURN p ORDER BY length(p) DESC limit 1;'
+        var queryStr =  'MATCH p=(:PageWithES{clickedIndex:0})-[*2..13]->(b:PageWithES)  where id(b)='+nodeID+' UNWIND NODES(p) AS n WITH p,b, SIZE(COLLECT(DISTINCT n)) AS testLength WHERE testLength = LENGTH(p)+1 RETURN p ORDER BY length(p) DESC limit 1;'
         var jqxhr = $.post(neo4jAPIURL, '{"statements":[{"statement":"' + queryStr + '", "resultDataContents":["row"]}]}',
             function(data) {
                 console.log(data);

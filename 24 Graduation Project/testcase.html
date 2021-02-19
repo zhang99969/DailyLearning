@@ -57,7 +57,12 @@
             <div class="col col-2 col-md-2 form-inline">            </div>
             <div class="col col-2 col-md-2 form-inline">            </div>
             <div class="col col-2 col-md-2 form-inline">            </div>
-            <div class="col col-2 col-md-2 form-inline">            </div>
+            <div class="col col-2 col-md-2 form-inline">
+                <button type="button" class="btn btn-outline-primary btn-sm" id="btnSave" style="margin-left:50px;">
+                    <i class="fa fa-floppy-o" aria-hidden="true"></i> 保存
+                </button>
+
+            </div>
             <div class="col col-2 col-md-2 form-inline">
                 <button type="button" class="btn btn-outline-primary btn-sm" id="btnShowFault"  >
                     查看测试记录和缺陷
@@ -209,12 +214,86 @@
 
     }
 
+    function jumptestrecord(){//跳转到测试记录和缺陷页面
+
+        var url = "testrecord.html";//此处拼接内容
+        window.location.href = url;
+    }
+
+
+    function savePath()
+    {
+
+       console.log(nodeidlist.toString());
+       console.log(nodebtnnamelist.toString());
+
+
+        var savedflag=false;
+        removeAlert();
+        promptAlert($('#graphContainer'), '保存成功，请在弹出页面查看已保存的测试用例', false);
+        var TCsave_nodelist_cache;
+        var TCsave_nodelistname_cache;
+        var ifTCsave_nodelistnull=sessionStorage.getItem('TCsave_nodelist')==null;
+
+        if(ifTCsave_nodelistnull)
+        {
+            TCsave_nodelist_cache="";
+            TCsave_nodelistname_cache="";
+        }
+        else
+        {
+            TCsave_nodelist_cache=sessionStorage.getItem('TCsave_nodelist');//在之前基础上保存
+            TCsave_nodelistname_cache=sessionStorage.getItem('TCsave_nodelistname');
+            var indexleft = TCsave_nodelist_cache.indexOf('['); // [字符出现的位置
+            var indexright = TCsave_nodelist_cache.indexOf(']'); // ]字符出现的位置
+
+            while(indexleft !== -1 && indexright !== -1) {//只判断结点id，如果重复说明name的list也重复
+                console.log(indexleft);
+                console.log(indexright);
+                console.log(TCsave_nodelist_cache.substring(indexleft+1,indexright));
+                console.log(nodeidlist.toString() );
+                if(TCsave_nodelist_cache.substring(indexleft+1,indexright) ==nodeidlist.toString() )//该字符串已经保存过了
+                {
+                    console.log("已保存过，本次不保存");
+                    savedflag=true;
+                    break;
+                }
+                indexleft = TCsave_nodelist_cache.indexOf('[',indexleft + 1); // 从字符串出现的位置的下一位置开始继续查找
+                indexright = TCsave_nodelist_cache.indexOf(']',indexright + 1); // 从字符串出现的位置的下一位置开始继续查找
+            }
+        }
+        if(savedflag==false)
+        {
+            TCsave_nodelist_cache=TCsave_nodelist_cache+"["+nodeidlist.toString()+"]";
+            TCsave_nodelistname_cache=TCsave_nodelistname_cache+"["+nodebtnnamelist.toString()+"]";
+        }
+
+        sessionStorage.setItem('TCsave_nodelist',TCsave_nodelist_cache);
+        sessionStorage.setItem('TCsave_nodelistname',TCsave_nodelistname_cache);
+        console.log(TCsave_nodelist_cache);
+        var url = "testcasesaved.html";
+        window.open(url);
+
+
+        /*
+        //调试用
+        sessionStorage.removeItem('TCsave_nodelist');
+           sessionStorage.removeItem('TCsave_nodelistname');
+   */
+    }
+
+
+
+
+    $('#btnSave').click(            function() {savePath()}            );
+    $('#btnShowFault').click(            function() {jumptestrecord()}   );
     //Page Init
     $(function() {
         var neo4jLogin = 'neo4j';
         var neo4jPassword = 'password';
 
         var nodelist=sessionStorage.getItem('nodelist');
+
         console.log(nodelist);
         setupNeo4jLoginForAjax(neo4jLogin, neo4jPassword);
         setButtons(nodelist);
