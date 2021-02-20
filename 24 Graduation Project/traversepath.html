@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>D3js test step page</title>
+    <title>移动应用的测试可视化系统 - A D3JS work with Neo4j</title>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <link rel="stylesheet" href="css/font-awesome.min.css">
@@ -44,27 +44,31 @@
                         <input type="checkbox" id="path1" name="path"> 由起始结点至此最短路径<br/>
                     </label>
                 </div>
+            </div>
+            <div class="col col-9 col-md-9 form-inline" >
+                <button type="button" class="btn btn-outline-primary btn-sm" id="btnTraverse" style="margin-left:50px;">
+                    <i class="fa fa-road" aria-hidden="true"></i> 生成遍历路径
+                </button>
+                <button type="button" class="btn btn-outline-primary btn-sm" id="btnReselect" style="margin-left:50px;">
+                    <i class="fa fa-refresh" aria-hidden="true"></i> 重新选择特征
+                </button>
+                <button type="button" class="btn btn-outline-primary btn-sm" id="btnShowcase" style="margin-left:50px;">
+                    <i class="fa fa-search" aria-hidden="true"></i> 分析该测试用例
+                </button>
+                <button type="button" class="btn btn-outline-primary btn-sm" id="btnSave" style="margin-left:50px;">
+                    <i class="fa fa-floppy-o" aria-hidden="true"></i> 保存
+                </button>
+            </div>
+        </div>
+        <div class="row" style="margin-left: 15px"; >
+            <div class="col col-12 col-md-12" style="padding-right: 145px">
                 <div class="checkbox">
-                    <label>
-                        <input type="checkbox" id="path2" name="path"> 覆盖图结构深度深<br/>
-                    </label>
+                    <label> <input type="checkbox" id="path2" name="path" > 自定义</label>
+                    <input type="text" class="form-control form-control-sm" size="40px"  style="padding-left:5px;margin-bottom: 15px" id="querySelf" onfocus="autucheck3()"/><br/>
                 </div>
             </div>
-                <div class="col col-9 col-md-9 form-inline" >
-                    <button type="button" class="btn btn-outline-primary btn-sm" id="btnTraverse" style="margin-left:50px;">
-                        <i class="fa fa-road" aria-hidden="true"></i> 生成遍历路径
-                    </button>
-                    <button type="button" class="btn btn-outline-primary btn-sm" id="btnReselect" style="margin-left:50px;">
-                        <i class="fa fa-refresh" aria-hidden="true"></i> 重新选择特征
-                    </button>
-                    <button type="button" class="btn btn-outline-primary btn-sm" id="btnShowcase" style="margin-left:50px;">
-                        <i class="fa fa-search" aria-hidden="true"></i> 分析该测试用例
-                    </button>
-                    <button type="button" class="btn btn-outline-primary btn-sm" id="btnSave" style="margin-left:50px;">
-                        <i class="fa fa-floppy-o" aria-hidden="true"></i> 保存
-                    </button>
-                </div>
         </div>
+
         <div class="container-fluid">
             <div class="row">
             <input type="text" class="form-control form-control-sm"  id="queryText" onfocus="this.select()" placeholder="查询内容"  style="display: none" />
@@ -87,6 +91,23 @@
 <script src="js/d3js-example-neo4j.js"></script>
 <script type="text/javascript">
     "use strict";
+
+    function autucheck3()//点击文本框后自动勾选自定义选框
+    {
+        var checklist=[];
+        var obj=document.getElementsByName("path");
+        for(var i=0;i<obj.length;i++)
+        {
+            if(obj[i].checked)
+            {
+                checklist[i]=true;
+            }
+        }
+        if(checklist[2]!=true)//未勾选
+        {
+            document.getElementById("path2").click();
+        }
+    }
 
     var id;
     var neo4jAPIURL = 'http://localhost:7474/db/data/transaction/commit';
@@ -187,6 +208,7 @@
         zoomGLayer.append('g').attr('id', 'path-label-group').attr('transform', 'translate(' + centerX + ',' + centerY + ')');
 
         zoom_handler(svg);
+
     }
 
     function stopSimulation() {
@@ -411,8 +433,8 @@
     function mouserOverall()//鼠标滑过每个结点并划走，实现部分结点显示显色后的效果
     {
         var circlesAll = d3.select('#circle-group').selectAll('circle');
-        console.log("all")
-        console.log(circlesAll);
+       // console.log("all")
+      //  console.log(circlesAll);
         circlesAll.each(function(d, i) {
             var onClickFunc = d3.select(this).on("mouseover");
             onClickFunc.apply(this, [d, i]);
@@ -452,7 +474,13 @@
         {
             submitQueryForShorest(id);
             success=true;
-            setTimeout(function(){mouserOverall() },500);//延时等待
+            setTimeout(function(){
+                mouserOverall()
+                removeAlert();
+                promptAlert($('#graphContainer'), '生成遍历路径成功', false);
+                document.getElementById("btnShowcase").disabled=false;
+                document.getElementById("btnSave").disabled=false;
+            },500);//延时等待
         }
         else if(checklist[0]==true&&checklist[1]!=true&&checklist[2]!=true)//只勾选第一项
         {
@@ -469,8 +497,38 @@
         }
         else if(checklist[2]==true&&checklist[0]!=true&&checklist[1]!=true)//只勾选第三项
         {
-            //算法待做
+            //测试用 MATCH p=shortestPath((a:PageWithES{clickedIndex:0})-[*]->(b:PageWithES)) where id(b) =200  return p
+            var str=$.trim($('#querySelf').val());
+            console.log(str);
+            if(str.substring(0,5)=="match" || str.substring(0,5)=="MATCH" )
+            {
+            submitQueryForSelf(str);
+            success=true;
+            setTimeout(function(){mouserOverall() },500);//延时等待
+            }
+            else promptAlert($('#graphContainer'), '请输入Cypher查询语法', true);
+
         }
+        else if(checklist[2]!=true&&checklist[0]==true&&checklist[1]==true)//同时勾选第一、二项
+        {
+            //算法待做
+            submitQueryForNotSoLonger(id);
+            success=true;
+            var longer=true;//需要更长时间显示
+            promptAlert($('#graphContainer'), '计算中', false);
+            setTimeout(function(){
+                mouserOverall();
+                removeAlert();
+                promptAlert($('#graphContainer'), '生成遍历路径成功', false);
+                document.getElementById("btnShowcase").disabled=false;
+                document.getElementById("btnSave").disabled=false;},5000);//延时等待
+
+        }
+        else
+        {
+            promptAlert($('#graphContainer'), '自定义查询条件不能与已有查询条件同时勾选', true);
+        }
+
 
 
         if(success&&longer!=true) {
@@ -627,6 +685,76 @@
             }, 'json');
     }
 
+    function submitQueryForNotSoLonger(nodeID) {//ForLonger结果中的第二个满足条件的项
+        var queryStr =  'MATCH p=(:PageWithES{clickedIndex:0})-[*2..13]->(b:PageWithES)  where id(b)='+nodeID+' UNWIND NODES(p) AS n WITH p,b, SIZE(COLLECT(DISTINCT n)) AS testLength WHERE testLength = LENGTH(p)+1 RETURN p ORDER BY length(p) DESC limit 2;'
+        var jqxhr = $.post(neo4jAPIURL, '{"statements":[{"statement":"' + queryStr + '", "resultDataContents":["row"]}]}',
+            function(data) {
+                console.log(data);
+                if (data.results != null && data.results.length > 0 && data.results[0].data != null && data.results[0].data.length > 0) {
+                    var neo4jDataItmArray = data.results[0].data;
+                    neo4jDataItmArray.forEach(dataItem => {
+                        var j=0;
+                        var neo4jNodeItm=dataItem.meta[0];
+                        //console.log(neo4jNodeItm);
+                        neo4jNodeItm.forEach(function (meta,index) {
+                            //  console.log(meta.id);
+                            if(index%2==0){//不存储关系信息
+                                TP_nodelist[j]=meta.id;
+                                console.log("nodelist["+j+"]="+meta.id);
+                                j++;
+                            }
+                        });
+                        var jj=0;
+                        var neo4jNodenameItm=dataItem.row[0];
+                        neo4jNodenameItm.forEach(function (row,index) {//存储结点id对应的名字
+                            if(index%2==0){
+                                TP_nodelistname[jj]=row.name;
+                                console.log("nodenamelist["+jj+"]="+row.name);
+                                jj++;
+                            }
+                        });
+                    });
+                }
+            }, 'json');
+    }
+
+    function submitQueryForSelf(queryStr) {
+        var jqxhr = $.post(neo4jAPIURL, '{"statements":[{"statement":"' + queryStr + '", "resultDataContents":["row"]}]}',
+            function(data) {
+                console.log("data is 1 ");
+                console.log(data);
+                if (data.results != null && data.results.length > 0 && data.results[0].data != null && data.results[0].data.length > 0) {
+                    var neo4jDataItmArray = data.results[0].data;
+                    neo4jDataItmArray.forEach(dataItem => {
+                        var j=0;
+                        var neo4jNodeItm=dataItem.meta[0];
+                        //console.log(neo4jNodeItm);
+                        neo4jNodeItm.forEach(function (meta,index) {
+                            //  console.log(meta.id);
+                            if(index%2==0){//不存储关系信息，有余数时跳过
+                                TP_nodelist[j]=meta.id;
+                             //   console.log("nodelist["+j+"]="+meta.id);
+                                j++;
+                            }
+                        });
+                        var jj=0;
+                        var neo4jNodenameItm=dataItem.row[0];
+                        neo4jNodenameItm.forEach(function (row,index) {//存储结点id对应的名字
+                            if(index%2==0){
+                                TP_nodelistname[jj]=row.name;
+                            //    console.log("nodenamelist["+jj+"]="+row.name);
+                                jj++;
+                            }
+                        });
+                    });
+                }
+                else {promptAlert($('#graphContainer'), '请输入正确的Cypher查询语法', true);
+                    return;
+                }
+            }, 'json');
+    }
+
+
     //Page Init
     $(function() {
 
@@ -654,7 +782,7 @@
         $('#btnReselect').click(            function() {reSelect()}            );
         $('#btnShowcase').click(            function() {jumptestcase()}   );
         $('#btnSave').click(            function() {savePath()}            );
-
+        $("#querySelf").val("编写语句，自定义路径特征条件进行生成   （结点类型为PageWithES，当前结点id为"+id+"）");
 
 
 

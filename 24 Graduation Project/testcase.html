@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>D3js test step page</title>
+    <title>移动应用的测试可视化系统 - A D3JS work with Neo4j</title>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <link rel="stylesheet" href="css/font-awesome.min.css">
@@ -26,7 +26,7 @@
                 <i class="fa fa-home" aria-hidden="true"></i>
             </button></a>
         </div>
-        <div class="col col-1 col-md-1 form-inline" style="background-color:lavender;">
+        <div class="col col-1 col-md-1 form-inline" style="background-color:lavender;   ">
             <a href="javascript:history.back(-1)"> <button type="button" class="btn btn-outline-primary" id="btnBack" style="background-color: white;">
                 <i class="fa fa-backward" aria-hidden="true"></i>
             </button></a>
@@ -43,34 +43,39 @@
     <div id="nodegraphname" style="margin-left: 15px;margin-right: 50px;font-size: 1px">    </div>
 
     <hr  />
-    <div class="row" style="margin-left: 30px;margin-right: 50px" >
-        <h5><div id="nodeInfo">测试用例信息</div></h5>
+    <div class="row" style="margin-left: 30px;margin-right: 50px" >  </div>
+
+
+
+
+
+    <div class="row">
+        <div class="col col-12 col-md-12 form-inline" style="padding-bottom: 15px">
+            <div class="col col-2 col-md-2 form-inline">
+                <div id="nodeInfo" style="margin-left:15px;"><h5>测试用例信息</h5></div></div>
+            <div class="col col-2 col-md-2 form-inline">            </div>
+            <div class="col col-2 col-md-2 form-inline">            </div>
+            <div class="col col-2 col-md-2 form-inline">
+                <button type="button" class="btn btn-outline-primary btn-sm" id="btnCreat" style="margin-left:50px;">
+                    <i class="fa fa-file-code-o " aria-hidden="true"></i> 生成对应测试用例  </button>
+            </div>
+            <div class="col col-2 col-md-2 form-inline">
+                <button type="button" class="btn btn-outline-primary btn-sm" id="btnSave" style="margin-left:50px;">
+                    <i class="fa fa-floppy-o" aria-hidden="true"></i> 保存  </button>
+            </div>
+            <div class="col col-2 col-md-2 form-inline">
+                <button type="button" class="btn btn-outline-primary btn-sm" id="btnShowFault"  >
+                    <i class="fa fa-list-alt" aria-hidden="true"></i>  查看测试记录和缺陷         </button>
+            </div>
+
+        </div>
     </div>
 
     <div id="nodeInfoTable"  class="col col-12 col-md-12">
         <table id="tableInfo" class="table table-hover" style="word-break:break-all;word-wrap:break-word;padding-right: 30px;"></table>
     </div>
 
-    <div class="row">
-        <div class="col col-12 col-md-12 form-inline" style="padding-bottom: 15px">
-            <div class="col col-2 col-md-2 form-inline">            </div>
-            <div class="col col-2 col-md-2 form-inline">            </div>
-            <div class="col col-2 col-md-2 form-inline">            </div>
-            <div class="col col-2 col-md-2 form-inline">            </div>
-            <div class="col col-2 col-md-2 form-inline">
-                <button type="button" class="btn btn-outline-primary btn-sm" id="btnSave" style="margin-left:50px;">
-                    <i class="fa fa-floppy-o" aria-hidden="true"></i> 保存
-                </button>
 
-            </div>
-            <div class="col col-2 col-md-2 form-inline">
-                <button type="button" class="btn btn-outline-primary btn-sm" id="btnShowFault"  >
-                    查看测试记录和缺陷
-                </button>
-            </div>
-
-        </div>
-    </div>
 
 </div>
 
@@ -214,6 +219,15 @@
 
     }
 
+    function creatTestcase(){//生成测试用例语句
+
+        var url = "testcasecreated.html";
+        window.open(url);
+
+    }
+
+
+
     function jumptestrecord(){//跳转到测试记录和缺陷页面
 
         var url = "testrecord.html";//此处拼接内容
@@ -283,8 +297,7 @@
     }
 
 
-
-
+    $('#btnCreat').click(            function() {creatTestcase()}            );
     $('#btnSave').click(            function() {savePath()}            );
     $('#btnShowFault').click(            function() {jumptestrecord()}   );
     //Page Init

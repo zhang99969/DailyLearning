@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>D3js test step page</title>
+    <title>移动应用的测试可视化系统 - A D3JS work with Neo4j</title>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <link rel="stylesheet" href="css/font-awesome.min.css">
@@ -21,8 +21,8 @@
             </button></a>
         </div>
         <div class="col col-1 col-md-1 form-inline" style="background-color:lavender;">
-            <a href="javascript:history.back(-1)"> <button type="button" class="btn btn-outline-primary" id="btnBack" style="background-color: white;">
-                <i class="fa fa-backward" aria-hidden="true"></i>
+            <button type="button" class="btn btn-outline-primary" id="btnClose" style="background-color: white;" onClick="custom_close()">
+                <i class="fa fa-times" aria-hidden="true"></i>
             </button></a>
         </div>
     </div>
@@ -39,6 +39,7 @@
     </div>
 
     <hr  />
+
 
     <div id="graph" style="">
 
@@ -63,6 +64,7 @@
 <script type="text/javascript">
     "use strict";
     var testcasenum=20;//可以查询到的数量限制
+    var lengthnum=50;//每个测试用例的结点最大数量
     var neo4jAPIURL = 'http://localhost:7474/db/data/transaction/commit';
     var TCsave_nodelist = new Array();//TestCaseNum
    // var TCsave_nodenamelistold = new Array();//旧的映射表，列 数表示id，值表示id结点的名字。搭配setnodenamelist和getnodenamelist方法
@@ -71,11 +73,24 @@
     {
         TCsave_nodelist[k]=new Array();
         TCsave_nodelistname[k]=new Array();
-        for(var j=0;j<20;j++)
+        for(var j=0;j<lengthnum;j++)//例如，j=20，用例长度为30，则页面会卡死
         {
             TCsave_nodelist[k][j]=-1;
             TCsave_nodelistname[k][j]="-1";
         }
+    }
+
+
+
+    function custom_close()
+    {
+        if
+        (confirm("您确定要关闭本页吗？")){
+            window.opener=null;
+            window.open('','_self');
+            window.close();
+        }
+        else{}
     }
 
     function showteststep()
@@ -332,7 +347,7 @@
                 for (var i=0;i<TCsave_nodelist_line.length;i++)
                 {
                     //console.log("["+parseInt(i/20)+"]["+parseInt(i%20)+"]");
-                    TCsave_nodelist[linenum][parseInt(i%20)]=Number(TCsave_nodelist_line[i]);
+                    TCsave_nodelist[linenum][parseInt(i%lengthnum)]=Number(TCsave_nodelist_line[i]);//原本是%20，lengthnum改成40后对应40
                 }
                 linenum++;
                 indexleft = TCsave_nodelist_cache.indexOf('[',indexleft + 1); // 从字符串出现的位置的下一位置开始继续查找
@@ -345,7 +360,7 @@
                 for (var i=0;i<TCsave_nodelistname_line.length;i++)
                 {
                     //console.log("["+parseInt(i/20)+"]["+parseInt(i%20)+"]");
-                    TCsave_nodelistname[linenum][parseInt(i%20)]=TCsave_nodelistname_line[i];
+                    TCsave_nodelistname[linenum][parseInt(i%lengthnum)]=TCsave_nodelistname_line[i];
                 }
                 linenum++;
                 indexleftname = TCsave_nodelistname_cache.indexOf('[',indexleftname + 1);

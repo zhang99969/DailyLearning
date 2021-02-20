@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>D3js test step page</title>
+    <title>移动应用的测试可视化系统 - A D3JS work with Neo4j</title>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <link rel="stylesheet" href="css/font-awesome.min.css">
@@ -202,10 +202,10 @@
                     </table>
                 </div>
                 <div id="table-div-reqDom"  style="display:none;padding-bottom: 15px" class="col col-12 col-md-12 " >
-                    <div id="domBox"></div>
+                    <div id="domBox" ></div>
                 </div>
                 <div id="table-div-resDom" style="display:none;padding-bottom: 15px"  class="col col-12 col-md-12 " >
-                    <div id="domBox2"></div>
+                    <div id="domBox2" ></div>
                 </div>
                 <div id="table-div-screenshot" style="display:inline;padding-bottom: 15px"  class="col col-12 col-md-12 " >
                     <div class="col col-4 col-md-4 form-inline" style="display:inline">
@@ -216,9 +216,10 @@
                     </div>
                 </div>
                 <div id="table-div-Log" style="display:none;padding-bottom: 15px"  class="col col-12 col-md-12 " >
-                    <div id="LogBox" style="white-space:pre-wrap;word-break:break-all; word-wrap:break-word;"></div>
+                    <div id="LogBox" style="white-space:pre-wrap;word-break:break-all; word-wrap:break-word;"  ></div>
                     <div id="LogBoxCache" style="display:none;" ></div>
                 </div>
+
             </div>
         </div>
     </div>
@@ -418,6 +419,16 @@
             window.location.href = url;
         }
 
+        function getWid() {
+           // var url = "traversegetwid.html?id="+id+"&nodeIndex="+nodeIndex+"&name="+nodeName;// nodeName内包含等号
+            var url = "traversegetwid.html?id="+id+"&nodeIndex="+nodeIndex;//+"&name="+nodeName;//
+            sessionStorage.setItem('nodeDomName',nodeName);
+            window.location.href = url;
+        }
+        function getNext() {
+            var url = "traversegetnext.html?id="+id;//此处拼接内容
+            window.location.href = url;
+        }
 
         function submitQuery(nodeID) {
             var queryStr =  'match (n)  where id(n) = ' + nodeID + ' return n';
@@ -464,6 +475,7 @@
 
                             $('#domBox').append($('<p></p>').text(neo4jNodeItm.properties.reqDom));
                             $('#domBox2').append($('<p></p>').text(neo4jNodeItm.properties.resDom));
+
 
 
                             console.log( sessionStorage.getItem('absopath'));
@@ -535,6 +547,9 @@
         $('#btnShowscreenshot').click(            function() {showscreenshot()}            );
         $('#btnShowlog').click(            function() {showLog()}            );
         $('#btnGetpath').click(            function() {getPath()}            );
+        $('#btnGetwid').click(            function() {getWid()}            );
+        $('#btnGetnext').click(            function() {getNext()}            );
+
 
 
 

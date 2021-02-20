@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>移动应用的测试可视化系统 - A D3JS work with Neo4j</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/font-awesome.min.css">
+    <!-- Custom styles for this template -->
+    <style type="text/css">
+        #codeTextarea{width:1400px;height: 520px;}
+        .textAreaWithLines{font-family: Arial;border: 1px solid #ddd;}
+        .textAreaWithLines textarea,.textAreaWithLines div{border: 0px;line-height: 120%;font-size: 16px;}
+        .lineObj{color: #666;}
+    </style>
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row" style="height:70px; margin-bottom: 15px"; >
+        <div class="col col-10 col-md-10 form-inline" style="background-color:lavender;"><h1>生成测试用例</h1></div>
+        <div class="col col-1 col-md-1 form-inline" style="background-color:lavender;">        </div>
+        <div class="col col-1 col-md-1 form-inline" style="background-color:lavender;   ">
+            <button type="button" class="btn btn-outline-primary" id="btnClose" style="background-color: white;" onClick="custom_close()">
+                <i class="fa fa-times" aria-hidden="true"></i>
+            </button></a>
+        </div>
+    </div>
+</div>
+
+
+<div class="container-fluid">
+
+    <div class="row" style="margin-left: 30px;margin-right: 50px" >
+        <h5><div id="node">生成的测试用例语句为</div></h5>
+    </div>
+
+    <hr  />
+
+    <div class="row">
+        <div class="col col-11 col-md-11" style="" >
+
+                <textarea id="codeTextarea"></textarea>
+
+        </div>
+        <div class="col col-1 col-md-1 form-inline">
+        </div>
+    </div>
+
+</div>
+
+
+<script type="text/javascript">
+
+
+    var lineObjOffsetTop = 2;
+    var lineadd=0;
+    function createTextAreaWithLines(id,linenum)
+    {
+        var el = document.createElement('DIV');
+        var ta = document.getElementById(id);
+        ta.parentNode.insertBefore(el,ta);
+        el.appendChild(ta);
+        el.className='textAreaWithLines';
+        ta.style.position = 'absolute';
+        ta.style.left = '30px';
+        el.style.height = (ta.offsetHeight + 2) + 'px';
+        el.style.overflow='hidden';
+        el.style.position = 'relative';
+        el.style.width = (ta.offsetWidth + 30) + 'px';
+        var lineObj = document.createElement('DIV');
+        lineObj.style.position = 'absolute';
+        lineObj.style.top = lineObjOffsetTop + 'px';
+        lineObj.style.left = '0px';
+        lineObj.style.width = '27px';
+        el.insertBefore(lineObj,ta);
+        lineObj.style.textAlign = 'right';
+        lineObj.className='lineObj';
+        var string = '';
+        for(var no=1;no<=(linenum+lineadd)*3;no++){
+            if(string.length>0)string = string + '<br>';
+            string = string + no;
+        }
+        lineadd=0;
+        ta.onkeydown = function() { positionLineObj(lineObj,ta); };
+        ta.onmousedown = function() { positionLineObj(lineObj,ta); };
+        ta.onscroll = function() { positionLineObj(lineObj,ta); };
+        ta.onblur = function() { positionLineObj(lineObj,ta); };
+        ta.onfocus = function() { positionLineObj(lineObj,ta); };
+        ta.onmouseover = function() { positionLineObj(lineObj,ta); };
+        lineObj.innerHTML = string;
+    }
+    function positionLineObj(obj,ta)
+    {
+        obj.style.top = (ta.scrollTop * -1 + lineObjOffsetTop) + 'px';
+    }
+
+</script>
+<!-- jQuery first, then Popper.js, then Bootstrap JS -->
+
+<script src="js/jquery-3.3.1.min.js"></script>
+<script src="js/jquery.params.js"></script>
+<script src="js/popper.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="js/d3.v5.min.js"></script>
+<script src="js/d3js-example-neo4j.js"></script>
+<script type="text/javascript">
+    "use strict";
+
+    var neo4jNodeItm;
+    var neo4jAPIURL = 'http://localhost:7474/db/data/transaction/commit';
+    var nodename2list=[];
+
+    function custom_close()
+    {
+            if
+            (confirm("您确定要关闭本页吗？")){
+                window.opener=null;
+                window.open('','_self');
+                window.close();
+            }
+            else{}
+    }
+
+
+    function setText()
+    {
+        var linnum=nodename2list.length;
+
+        if(sessionStorage.getItem("nodelist_add")!=null)//来自 获取未遍历控件 页面中是否有额外的语句
+        {
+            console.log("add");
+            //linnum=linnum+1; 修改后会影响到后面
+            lineadd=1;
+        }
+        createTextAreaWithLines('codeTextarea',linnum);
+
+        var text=document.getElementById("codeTextarea");
+        for(var index=0;index<linnum;index++)
+        {
+        text.value=text.value+"  - xpath: "+nodename2list[index];
+        text.value=text.value+"\n  - xpath: //*\n    action: Thread.sleep(300)\n";
+        }
+
+
+        var text_add=sessionStorage.getItem("nodelist_add");//来自 获取未遍历控件 页面中额外的语句
+        if(text_add!=null)
+        {
+            text.value=text.value+"  - xpath: "+text_add+"\n  - xpath: //*\n    action: Thread.sleep(300)\n";
+            sessionStorage.removeItem("nodelist_add")
+        }
+    }
+
+    function getXpaths(nodelist){
+        var nodeList = nodelist.split(",");
+        for(var i=0;i<nodeList.length;i++) {//结点信息的获取与展示
+            var queryStr =  'match (n)  where id(n) = ' + nodeList[i] + ' return n';
+            var jqxhr = $.post(neo4jAPIURL, '{"statements":[{"statement":"' + queryStr + '", "resultDataContents":["graph"]}]}',
+                function(data) {
+                     console.log(data);
+                    if (data.results != null && data.results.length > 0 && data.results[0].data != null && data.results[0].data.length > 0) {
+
+                        var neo4jDataItmArray = data.results[0].data;
+                        neo4jDataItmArray.forEach(dataItem =>  {//不是index，只取每个的第一项
+                            neo4jNodeItm=dataItem.graph.nodes[0]
+                            var nodeid=neo4jNodeItm.id;
+                            var index=nodeList.indexOf(nodeid);//根据传入结点列表nodeList中的位置确定索引位置，避免迸发造成乱序
+                            var name2=neo4jNodeItm.properties.Elements_xpath;
+                            nodename2list[index]=name2;
+
+
+
+                        });
+                    }
+                }, 'json');
+        }
+        setTimeout(function(){ setText();   },500);//延时等待
+    }
+
+
+
+    //Page Init
+    $(function() {
+        var neo4jLogin = 'neo4j';
+        var neo4jPassword = 'password';
+        var nodelist=sessionStorage.getItem('nodelist');
+
+        console.log(nodelist);
+        setupNeo4jLoginForAjax(neo4jLogin, neo4jPassword);
+        getXpaths(nodelist);
+    });
+</script>
+</body>
+</html>

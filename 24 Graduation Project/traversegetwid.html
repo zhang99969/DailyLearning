@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html"; charset="GB2312">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>移动应用的测试可视化系统 - A D3JS work with Neo4j</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/font-awesome.min.css">
+    <!-- Custom styles for this template -->
+    <style type="text/css">
+        .table td, .table th {
+            padding: 12px;
+            vertical-align: top;
+            border-top: 1px solid #dee2e6;
+
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container-fluid">
+    <div class="row" style="height:70px; margin-bottom: 15px"; >
+        <div class="col col-10 col-md-10 form-inline" style="background-color:lavender;"><h1>获取未遍历控件</h1></div>
+        <div class="col col-1 col-md-1 form-inline" style="background-color:lavender;">
+            <a href="query.html"><button type="button" class="btn btn-outline-primary" id="btnHome" style="background-color: white">
+                <i class="fa fa-home" aria-hidden="true"></i>
+            </button></a>
+        </div>
+        <div class="col col-1 col-md-1 form-inline" style="background-color:lavender;">
+            <a href="javascript:history.back(-1)"> <button type="button" class="btn btn-outline-primary" id="btnBack" style="background-color: white;">
+                <i class="fa fa-backward" aria-hidden="true"></i>
+            </button></a>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+
+
+    <hr/>
+    <div class="row" style="margin-left: 30px;margin-right: 50px;margin-bottom: 10px" >
+        <h5><div id="node3">未遍历的控件有</div></h5>
+
+
+    <button type="button" class="btn btn-outline-primary btn-sm" id="btnUnfold" style="margin-left:50px;">
+        <i class="fa fa-folder-open" aria-hidden="true"></i> 展开
+    </button>
+
+    </div>
+    <div id="nodeInfoTable"   class="col col-12 col-md-12">
+        <table id="tableInfo" class="table table-hover" style="word-break:break-all;word-wrap:break-word;padding-right: 30px;"></table>
+        <div id="RecordBoxCache" style="display:none;" ></div>
+    </div>
+
+
+    </div>
+
+
+
+
+</div>
+
+
+
+<!-- jQuery first, then Popper.js, then Bootstrap JS -->
+
+<script src="js/jquery-3.3.1.min.js"></script>
+<script src="js/jquery.params.js"></script>
+<script src="js/popper.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="js/d3.v5.min.js"></script>
+<script src="js/d3js-example-neo4j.js"></script>
+<script type="text/javascript">
+    "use strict";
+
+    var neo4jNodeItm;
+    var neo4jAPIURL = 'http://localhost:7474/db/data/transaction/commit';
+
+    var nodeIndex;
+    var id;
+    var name;//dom文件名字
+    var ifgetLog=false;
+    var domcontent=[];
+
+    function openAll(){
+        showDomFile()
+        document.getElementById("btnUnfold").style.display="none";
+        document.getElementById("tableInfo").style.display="";
+        document.getElementById("btnFold1").style.display="";
+        document.getElementById("btnFold2").style.display="";
+    }
+
+
+
+    function showDomFile(){//查看DOM文件
+        var filename=sessionStorage.getItem('absopath')+"\\"+nodeIndex+"_"+name+".dom";//正确的dom文件的绝对路径
+        var filenameChrome="http://127.0.0.1:8887"+"/IdeaProjects/20201231104305_gov.hgm.hgmeap"+"/"+nodeIndex+"_"+name+".dom";
+
+        window.open(filenameChrome, null);
+
+    }
+
+    function showSuite(){
+        /*
+                    var htmlobj=$.ajax({url:"http://127.0.0.1:8887/IdeaProjects/20201231104305_gov.hgm.hgmeap/appcrawler.log",async:false});
+
+                      var filenameChrome="http://127.0.0.1:8887"+"/IdeaProjects/20201231104305_gov.hgm.hgmeap"+"/"+nodeIndex+"_"+nodeName+".click.png";
+        */
+
+
+        if(!ifgetLog){
+            var filelog="http://127.0.0.1:8887"+"/IdeaProjects/20201231104305_gov.hgm.hgmeap"+"/"+nodeIndex+"_"+name+".dom";
+            console.log(filelog);
+            $("#RecordBoxCache").load(filelog,function(response){
+                var filecontent=response;
+              //  console.log(filecontent);
+                var fctn;
+                var i=0;
+                while(filecontent.indexOf("\n")!=-1)
+                {
+                    fctn=filecontent.substring(0,filecontent.indexOf("\n"));//每一行
+                //    console.log(fctn);
+                    if(fctn.indexOf("clickable=\"true\"")!=-1 || fctn.indexOf("scrollable=\"true\"")!=-1)//存在可以点击或者的控件
+                    {
+                        var dctn=fctn.substring(fctn.indexOf("<"));//去掉前面的空格
+                        dctn=dctn.replace("<","&lt;");//防止被浏览器当作正常标签解析
+                        dctn=dctn.replace(">","&gt;");
+
+                        dctn=dctn.replace(" clickable=","<br/>clickable=");//手动换行，格式清晰
+                        dctn=dctn.replace(" package=","<br/>package=");//手动换行，格式清晰
+
+                        domcontent[i]=dctn;
+                        i++;
+                    }
+                    filecontent=filecontent.substring(filecontent.indexOf("\n")+1);
+                }
+                $("#LogBoxCache").empty();
+                console.log(domcontent);
+                setTableInfo();
+            });
+        }
+
+
+
+    }
+
+
+    
+    function setButtons(i) {
+        var td=document.getElementById("td"+i)
+       // console.log(td);
+        var o=document.createElement("input");
+        o.type = "button" ;
+        o.value = "生成对应测试用例";
+        o.id="btn"+i; //传递i值从而获取 需要分析的测试用例 在nodelist的行数
+        o.className="btn btn-outline-primary btn-sm";//
+        o.style.cssText ="float:right;margin-top:20px";
+        o.addEventListener("click",showtestcase);
+      //  console.log(o);
+        td.appendChild(o);
+        o = null;
+
+    }
+
+
+    function setTableInfo()
+    {
+        var data="<table>"
+        for(var i=0;i<domcontent.length;i++)
+        {
+            var type="其他";
+            if(domcontent[i].indexOf("clickable=\"true\"")!=-1)
+            {
+                type="按钮"
+            }
+            else    if(domcontent[i].indexOf("scrollable=\"true\"")!=-1)
+            {
+                type="滚动条"
+            }
+            data += "<tr>";
+            data += "<td style='width: 100px'><strong>" + type + "<br/>类型</strong></td>";
+            data += "<td > "+domcontent[i]+"</td>";//<xmp>
+            var idd="td"+i;
+            data += "<td id="+idd+"></td>";
+            data += "</tr>";
+
+
+        }
+        data += "</table>";
+        document.getElementById("tableInfo").innerHTML = data;
+
+        for(var i=0;i<domcontent.length;i++)
+        {
+            setButtons(i);//不能放到上面一个循环中
+        }
+
+
+    }
+    function showtestcase() {
+        var rownum = this.id;//必须放在该函数内
+        console.log(rownum);
+        rownum=rownum.toString().substring(3);//通过按钮的id编号获取nodelist所在行数
+        CreatShorestPathtoThisNode(id,rownum);//先得到从起点至此的最近路径
+        //跳转页面函数在以上函数内
+    }
+
+    var nodelist=[];
+    function CreatShorestPathtoThisNode(nodeID,rownum) {
+        var queryStr =  'MATCH p=shortestPath((a:PageWithES{clickedIndex:0})-[*]->(b:PageWithES)) where id(b) =' + nodeID + '  return p;';
+        var jqxhr = $.post(neo4jAPIURL, '{"statements":[{"statement":"' + queryStr + '", "resultDataContents":["row"]}]}',
+            function(data) {
+                console.log("data is");
+                console.log(data);
+                if (data.results != null && data.results.length > 0 && data.results[0].data != null && data.results[0].data.length > 0) {
+                    var neo4jDataItmArray = data.results[0].data;
+                    neo4jDataItmArray.forEach(dataItem => {
+                        var j=0;
+                        // console.log("______");
+                        var neo4jNodeItm=dataItem.meta[0];
+                        //console.log(neo4jNodeItm);
+                        neo4jNodeItm.forEach(function (meta,index) {
+                            //  console.log(meta.id);
+                            if(index%2==0){//不存储关系信息，有余数时跳过
+                                nodelist[j]=meta.id;
+                                console.log("nodelist["+j+"]="+meta.id);
+                                j++;
+                            }
+                        });
+                    });
+                }
+            }, 'json');
+
+        setTimeout(function(){
+            sessionStorage.setItem('nodelist',nodelist);//
+            //再添加一句到选定的控件的测试用例语句
+            // <android.widget.TextView bounds="[331,76][389,115]" checkable="false" checked="false" class="android.widget.TextView"
+            //package="gov.hgm.hgmeap" password="false" resource-id="gov.hgm.hgmeap:id/scienceTitleBarTvTitle" scrollable="false" selected="false" text="???"/>
+            //      转换成
+            //    android.widget.TextView[@class='android.widget.TextView' and @resource-id='gov.hgm.hgmeap:id/scienceTitleBarTvTitle']
+            //    android.widget.TextView[@class="android.widget.TextView" and @resource-id="gov.hgm.hgmeap:id/scienceTitleBarTvTitle"
+            var str=domcontent[rownum];
+            console.log(domcontent[rownum]);
+            var strname=str.substring(4,str.indexOf(" bounds"));
+            var strclass=str.substring(str.indexOf("class="),str.indexOf("<br/>clickable="));
+            var strresource=str.substring(str.indexOf("resource-id="),str.indexOf(" scrollable="));
+            var strtestcase=strname+"[@"+strclass+" and @"+strresource+"]";
+            strtestcase=strtestcase.replace("\"","'");//这里用单引号
+            sessionStorage.setItem('nodelist_add',strtestcase);//本控件额外的测试用例语句
+            console.log(strtestcase);
+            var url = "testcasecreated.html";
+            window.open(url);
+            sessionStorage.removeItem("nodelist_add");//本页面也要及时清除
+        },500);//延时等待
+    }
+
+
+
+
+    $('#btnUnfold').click(            function() {openAll()}            );
+    $('#btnFold1').click(            function() {closeAll()}            );
+    $('#btnFold2').click(            function() {closeAll()}            );
+
+
+    //Page Init
+    $(function() {
+        var neo4jLogin = 'neo4j';
+        var neo4jPassword = 'password';
+        id = $.query.get("id");
+        nodeIndex = $.query.get("nodeIndex");
+        name = sessionStorage.getItem("nodeDomName");//内有=等符号，$.query.get不完整
+        setupNeo4jLoginForAjax(neo4jLogin, neo4jPassword);
+        showSuite();
+        //setTableInfo();
+
+    });
+</script>
+</body>
+</html>

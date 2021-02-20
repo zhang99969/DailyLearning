@@ -20,7 +20,7 @@
 
 <div class="container-fluid">
     <div class="row" style="height:70px; margin-bottom: 15px"; >
-        <div class="col col-10 col-md-10 form-inline" style="background-color:lavender;"><h1>分析测试记录和缺陷</h1></div>
+        <div class="col col-10 col-md-10 form-inline" style="background-color:lavender;"><h1>获取未遍历控件</h1></div>
         <div class="col col-1 col-md-1 form-inline" style="background-color:lavender;">
             <a href="query.html"><button type="button" class="btn btn-outline-primary" id="btnHome" style="background-color: white">
                 <i class="fa fa-home" aria-hidden="true"></i>
@@ -104,13 +104,6 @@
         document.getElementById("btnFold2").style.display="";
     }
 
-    function closeAll(){
-        document.getElementById("btnUnfold").style.display="";
-        document.getElementById("tableInfo").style.display="none";
-        document.getElementById("btnFold1").style.display="none";
-        document.getElementById("btnFold2").style.display="none";
-    }
-
 
     function showSuite(){
         /*
@@ -177,43 +170,7 @@
             });
         }
     }
-    tagMap = {};
-/*    tagMap = {
-        "5d3570fc-2bc0-4472-b14b-db503084d561": 1,
-        "b991dc2d-dae0-4a50-8c35-e7f49ee38322": 1,
-    };*/
-    function filterDate(tablecontent)//计算表格内各种情况的数量
-    {
-        var tbc=tablecontent;
-        //console.log(tbc);
-        var tid;//如bdd1313c-c862-411f-b30f-4a01700809c8，长度确定
 
-        while(tbc.indexOf("id=\"")!=-1)
-        {
-            tid = tbc.substring(tbc.indexOf("id=\"") + 4, tbc.indexOf("id=\"") + 4 + 36);//length是从开始算起
-            tbc = tbc.substring(tbc.indexOf("id=\"") + 4 + 36);//截去前面的
-            tagMap[tid] = 0;
-            console.log(tid);
-            //  console.log(document.getElementById(tid));
-            for (var i = 2; i < 7; i++) {
-                var Num;
-                //Num=document.getElementById(tid).cells[2].childNodes[0];//返回"30"
-                Num = parseInt(document.getElementById(tid).cells[i].innerText);
-                if (Num > 0) {
-                    if(i==2)   tagMap[tid] |= 1;
-                    if(i==3)   tagMap[tid] |= 2;
-                    if(i==4)   tagMap[tid] |= 16;
-                    if(i==5)   tagMap[tid] |= 4;
-                    if(i==6)   tagMap[tid] |= 8;
-                }
-            }
-           // tagMap[tid] = tagMap[tid] - 1;//默认为1，多算了一次succeed列
-        }
-       // tagMap["5d3570fc-2bc0-4472-b14b-db503084d561"]=13; //suc ig pen MainActivity, not succeed canceled ignored
-       // tagMap["b991dc2d-dae0-4a50-8c35-e7f49ee38322"]=25;//suc pen can SecurityChangePwdActivity,not succeed ignored pending
-        // 以上两行测试用，违反直觉
-        //console.log(tagMap);
-    }
 
 
     var nodeList=[];
@@ -242,88 +199,7 @@
 
     }
 
-    function getAllnode() {
 
-        var queryStr = 'match (n:PageWithES) return ID(n) order by n.clickedIndex';//获取所有结点的id
-        //   console.log(queryStr);
-        var jqxhr = $.post(neo4jAPIURL, '{"statements":[{"statement":"' + queryStr + '", "resultDataContents":["row"]}]}',
-            function (data) {
-                //   console.log(data);
-                if (data.results != null && data.results.length > 0 && data.results[0].data != null && data.results[0].data.length > 0) {
-                    var i = 0;
-                    var neo4jDataItmArray = data.results[0].data;
-                    //console.log(neo4jDataItmArray);
-                    neo4jDataItmArray.forEach(dataItem => {
-                        nodeList[i] = dataItem.row[0];//得到
-                        i++;
-                        //console.log(nodeList);
-                    });
-                }
-            }, 'json');
-        //console.log(nodeList);
-        setTimeout(function(){ ShowAllnode() },500);//延时等待
-    }
-    var j=0;
-    function ShowAllnode() {//这段代码放到getAllnode中会由于并行运行导致nodeList为空
-        for(var i=0;i<nodeList.length;i++)//对每个结点信息的获取与展示
-        {
-            var queryStr =  'match (n)  where id(n) = ' + nodeList[i] + ' return n';
-             //console.log(queryStr);
-            var jqxhr = $.post(neo4jAPIURL, '{"statements":[{"statement":"' + queryStr + '", "resultDataContents":["graph"]}]}',
-                function(data) {
-                    if (data.results != null && data.results.length > 0 && data.results[0].data != null && data.results[0].data.length > 0) {
-                        var neo4jDataItmArray = data.results[0].data;
-                        neo4jDataItmArray.forEach(dataItem =>  {//不是index，只取每个的第一项
-                            neo4jNodeItm=dataItem.graph.nodes[0]
-                           // console.log(neo4jNodeItm);
-
-                            var name=neo4jNodeItm.properties.ElementStoreName;
-                            nodename1list[j]=name;
-                           // console.log(nodename1list);
-                            var name2="clickedIndex="+neo4jNodeItm.properties.clickedIndex+" action="+neo4jNodeItm.properties.action+" xpath="+neo4jNodeItm.properties.Elements_xpath;
-                            nodename2list[j]=name2;
-                            j++;
-
-                        });
-                    }
-                }, 'json');
-        }
-        setTimeout(function(){ setTableInfo(datainfo) },500);//延时等待
-
-    }
-    var tagMap = {};
-    var SUCCEEDED_BIT = 1;
-    var FAILED_BIT = 2;
-    var CANCELED_BIT = 16;
-    var IGNORED_BIT = 4;
-    var PENDING_BIT = 8;//和原版顺序不同
-
-    function applyFilter() {
-        var mask = 0;
-        if (document.getElementById('succeeded_checkbox').checked)
-            mask |= SUCCEEDED_BIT;//按位或．然后赋值．
-        if (document.getElementById('failed_checkbox').checked)
-            mask |= FAILED_BIT;
-        if (document.getElementById('ignored_checkbox').checked)
-            mask |= IGNORED_BIT;
-        if (document.getElementById('pending_checkbox').checked)
-            mask |= PENDING_BIT;
-        if (document.getElementById('canceled_checkbox').checked)
-            mask |= CANCELED_BIT;
-        console.log(mask);
-        for (var key in tagMap) {
-            if (tagMap.hasOwnProperty(key)) {
-                var bitSet = tagMap[key];
-                var element = document.getElementById(key);
-                console.log(bitSet);
-                console.log(element);
-                if ((bitSet & mask) != 0)
-                {element.style.display = "table-row"; console.log("1111")}
-                else
-                {element.style.display = "none";}
-            }
-        }
-    }
 
 
 
@@ -338,13 +214,10 @@
     $(function() {
         var neo4jLogin = 'neo4j';
         var neo4jPassword = 'password';
-        var datainfo =  " <table>";
 
 
         setupNeo4jLoginForAjax(neo4jLogin, neo4jPassword);
-        showSuite();
 
-        getAllnode();
 
     });
 </script>
