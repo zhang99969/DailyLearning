@@ -31,6 +31,8 @@
 <div class="container-fluid">
 
 
+        <div id="FileCache" style="display:none;" ></div>
+
 </div>
 
 
@@ -45,270 +47,318 @@
 <script src="js/d3js-example-neo4j.js"></script>
 <script type="text/javascript">
     "use strict";
+    var neo4jAPIURL = 'http://localhost:7474/db/data/transaction/commit';
+    var filecontent;
+    //---------------elementStoreMap系列
+    var elementStoreMapAll;
+    var elementStoreMap=[];
+    var elementStoreMapnum;
+    var elementStoreMap_ESName=[];
+    var elementStoreMap_reqDom=[];
+    var elementStoreMap_resDom=[];
+    var elementStoreMap_reqHash=[];
+    var elementStoreMap_resHash=[];
+    var elementStoreMap_reqImg=[];
+    var elementStoreMap_resImg=[];
+    var elementStoreMap_reqTime=[];
+    var elementStoreMap_resTime=[];
+    var elementStoreMap_action=[];
+    var elementStoreMap_clickedIndex=[];
+    var elementStoreMap_cEL_url=[];
+    var elementStoreMap_cEL_tag=[];
+    var elementStoreMap_cEL_id=[];
+    var elementStoreMap_cEL_name=[];
+    var elementStoreMap_cEL_text=[];
+    var elementStoreMap_cEL_instance=[];
+    var elementStoreMap_cEL_depth=[];
+    var elementStoreMap_cEL_valid=[];
+    var elementStoreMap_cEL_selected=[];
+    var elementStoreMap_cEL_xpath=[];
+    var elementStoreMap_cEL_ancestor=[];
+    var elementStoreMap_cEL_x=[];
+    var elementStoreMap_cEL_y=[];
+    var elementStoreMap_cEL_width=[];
+    var elementStoreMap_cEL_height=[];
+    var elementStoreMap_cEL_action=[];
+    var elementStoreMap_shortIndex=[];//为了在D3JS中显示节点名
 
-    function Person(name){
-        this.name = name;
-        if(Person.prototype.say == undefined){
-            Person.prototype.say = function(){
-                alert("I am "+this.name);
-            }
-        }
-    }
-    var p1 = new Person("wang");
-    var p2 = new Person("li");
-    p1.say();
-    p2.say();
-    alert(p1.say==p2.say); //true
+    //---------------clickedElementsList系列
+    var clickedElementsListAll;
+    var clickedElementsList=[];
+    var clickedElementsListnum;
+    var clickedElementsList_url=[];
+    var clickedElementsList_tag=[];
+    var clickedElementsList_id=[];
+    var clickedElementsList_name=[];
+    var clickedElementsList_text=[];
+    var clickedElementsList_instance=[];
+    var clickedElementsList_depth=[];
+    var clickedElementsList_valid=[];
+    var clickedElementsList_selected=[];
+    var clickedElementsList_xpath=[];
+    var clickedElementsList_ancestor=[];
+    var clickedElementsList_x=[];
+    var clickedElementsList_y=[];
+    var clickedElementsList_width=[];
+    var clickedElementsList_height=[];
+    var clickedElementsList_action=[];
+    var clickedElementsList_combinedInfo=[];
 
+    function readFileByLines(){//读取yml文件，把所有换行给去掉，代替为&符号。替换所有转义字符
+        // var nn=filecontent.substring(filecontent.indexOf("---")+3,4)//nn是回车
+        //filecontent=filecontent.replace(nn,"&");
+        filecontent = filecontent.replace(/[\r\n]/g,"&");//g,表示全部替换 ,[]表示或
+        filecontent=filecontent.replace(/\\&        /g,"");  //readFileByLines2中没有该项，导致elementStoreMap中xpath部分and前空格过多
+        filecontent=filecontent.replace(/\\&       /g,"");  //readFileByLines2中没有该项，导致elementStoreMap中xpath部分and前空格过多
+        filecontent=filecontent.replace(/\\&      /g,"");
+        filecontent=filecontent.replace(/\\&     /g,"");
+        filecontent=filecontent.replace(/\\&    /g,"");  //readFileByLines2中没有该项，导致clickedElementsList中出现换行
+     //   console.log(filecontent)//至此，和readFileByLines、readFileByLines2效果一样
+        //     filecontent=filecontent.replace("\\&      ","");
+      //  console.log(filecontent.indexOf("\\&      "))
+        filecontent=filecontent.replace(/\\\"/g,"\"");// [\"]->["] [\r\n]->[回车] [\      ]->[]
+        filecontent=filecontent.replace(/\\r\\n/g,"\r\n");
+        filecontent=filecontent.replace(/\\ /g," ");
+        filecontent=filecontent.replace(/&/g,"\r\n");
+    //   console.log(filecontent)//至此，和readFileByLines、readFileByLines2效果一样
 
-    public class AcElements {
-
-        private String url;
-        private String tag;
-        private String id;
-        private String name;
-        private String text;
-        private String instance;
-        private String depth;
-        private String valid;
-        private String selected;
-        private String xpath;
-        private String ancestor;
-        private String action;
-        private Integer x;
-        private Integer y;
-        private Integer width;
-        private Integer height;
-        public String toString() {
-            return "ElementStore {StoreName:" + getName() + "|url:" + getUrl() + "|height:" + getHeight() + "}";
-        }
-
-    }
-
-    public class AcElementStore {
-
-        @Id
-        @GeneratedValue
-        private Long id;
-        private Long reportid;
-        private String elementStoreName;
-        private String reqDom;
-        private String resDom;
-        private String reqHash;
-        private String resHash;
-        private String reqImg;
-        private String resImg;
-        private String reqTime;
-        private String resTime;
-        private String action;
-        private int clickedIndex;
-        private AcElements element;
-
-
-        public String toString() {
-            return "ElementStore {StoreName:" + getElementStoreName() + "|reqHash:" + getReqHash() + "|element:" + element.toString() + "}";
-        }
-        public String toString2() {
-            return "ElementStore {StoreName:" + getElementStoreName() + "|reqHash:" + getReqHash() + "}";
-        }
-        public String toString3() {
-            return getElement().getAncestor();
-        }
-
-    }
-
-    function Person(name){
-        this.name = name;
-        if(Person.prototype.say == undefined){
-            Person.prototype.say = function(){
-                alert("I am "+this.name);
-            }
-        }
-    }
-    var p1 = new Person("wang");
-    var p2 = new Person("li");
-    p1.say();
-    p2.say();
-    alert(p1.say==p2.say); //true
-
-
-    Map<Integer,AcElements> getYamlclickedAcElementsListWithClass(String YML)    {
-        Map<Integer,AcElements> mapout = new  HashMap();//获取每个的url数据
-        int mapoutnum=0;//数量
-        try {
-            Yaml yaml = new Yaml();
-            File f = new File(YML);
-            if (f != null) {
-                //获取test.yaml文件中的配置数据，转换为Map
-                Map<String, List<Map<String,Object>>> map =(Map)yaml.load(new FileInputStream(f));//第一层，最外层
-                //通过map取值
-                List<Map<String,Object>> list = map.get("clickedElementsList");//第二层
-                //list为[{url=com.zol.android.首页, tag=Start , action=_Start}, {url=Steps, tag=android.widget.TextView, action=click}]
-                for(Map<String,Object> map2 : list){//第三层
-                    AcElements e =new AcElements();
-                    e.setUrl(map2.get("url").toString());
-                    e.setTag(map2.get("tag").toString());
-                    e.setId(map2.get("id").toString());
-                    e.setName(map2.get("name").toString());
-                    e.setText(map2.get("text").toString());
-                    e.setInstance(map2.get("instance").toString());
-                    e.setDepth(map2.get("depth").toString());
-                    e.setValid(map2.get("valid").toString());
-                    e.setSelected(map2.get("selected").toString());
-                    e.setXpath(map2.get("xpath").toString());
-                    e.setAncestor(map2.get("ancestor").toString());
-                    e.setAction(map2.get("action").toString());
-                    e.setX(Integer.valueOf(map2.get("x").toString()));
-                    e.setY(Integer.valueOf(map2.get("y").toString()));
-                    e.setWidth(Integer.valueOf(map2.get("width").toString()));
-                    e.setHeight(Integer.valueOf(map2.get("height").toString()));
-                    mapout.put(mapoutnum,e);
-                    mapoutnum++;
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        //System.out.println(mapout);
-        return mapout;
-    }
-
-    Map<Integer,AcElementStore> getYamlAcElementStoreMapWithClass(String YML,long reptId)    {
-        Map<Integer,AcElementStore> mapout = new  HashMap();//获取每个的url数据
-        int mapoutnum=0;//数量
-        try {
-            Yaml yaml = new Yaml();
-            File f = new File(YML);
-            if (f != null) {
-                Map<String, Map<String,Map<String,Object>>> map =(Map)yaml.load(new FileInputStream(f));//第一层，最外层，还带有clickedAcElementsList
-                Map<String,Map<String,Object>> map2=map.get("elementStoreMap");//第二层
-                Iterator<Map.Entry<String ,Map<String,Object>>>  it2 = map2.entrySet().iterator();
-                while (it2.hasNext()) {
-                    //it.next()获取嵌套对象
-                    Map.Entry<String,Map<String ,Object>> map3= it2.next();//第三层
-                    AcElementStore es =new AcElementStore();
-                    es.setElementStoreName(map3.getKey());
-                    es.setReportid(reptId);
-                    es.setReqDom(map3.getValue().get("reqDom").toString());
-                    es.setResDom(map3.getValue().get("resDom").toString());
-                    es.setReqHash(map3.getValue().get("reqHash").toString());
-                    es.setResHash(map3.getValue().get("resHash").toString());
-                    es.setReqImg(map3.getValue().get("reqImg").toString());
-                    es.setResImg(map3.getValue().get("resImg").toString());
-                    es.setReqTime(map3.getValue().get("reqTime").toString());
-                    es.setResTime(map3.getValue().get("resTime").toString());
-                    es.setClickedIndex(Integer.valueOf(map3.getValue().get("clickedIndex").toString()));
-                    es.setAction(map3.getValue().get("action").toString());
-                    Map<String,Object> map6= getStringToMap(map3.getValue().get("element").toString());//使用了string分割转成map的方法
-                    AcElements e =new AcElements();
-                    e.setUrl(map6.get("url").toString());
-                    e.setTag(map6.get("tag").toString());
-                    e.setId(map6.get("id").toString());
-                    e.setName(map6.get("name").toString());
-                    e.setText(map6.get("text").toString());
-                    e.setInstance(map6.get("instance").toString());
-                    e.setDepth(map6.get("depth").toString());
-                    e.setValid(map6.get("valid").toString());
-                    e.setSelected(map6.get("selected").toString());
-                    e.setXpath(map6.get("xpath").toString());
-                    e.setAncestor(map6.get("ancestor").toString());
-                    e.setAction(map6.get("action").toString());
-                    e.setX(Integer.valueOf(map6.get("x").toString()));
-                    e.setY(Integer.valueOf(map6.get("y").toString()));
-                    e.setWidth(Integer.valueOf(map6.get("width").toString()));
-                    e.setHeight(Integer.valueOf(map6.get("height").toString()));
-                    es.setElement(e);
-                    mapout.put(mapoutnum,es);
-                    mapoutnum++;
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        // System.out.println("=================");
-        return mapout;
 
     }
 
-    Map<Integer,AcElementStore> getOrderFromClickElmentAndgetInfoFromElementStore(Map<Integer,AcElements> mapCE,Map<Integer,AcElementStore> mapES) {
-        Map<Integer,AcElementStore> mapout = new  HashMap();
-        int num=0;
+    function putsclickedElementsList(){
+        var i=0;
+        console.log(clickedElementsList_url[i]);
+        console.log(clickedElementsList_tag[i]);
+        console.log(clickedElementsList_id[i]);
+        console.log(clickedElementsList_name[i]);
+        console.log(clickedElementsList_text[i]);
+        console.log(clickedElementsList_instance[i]);
+        console.log(clickedElementsList_depth[i]);
+        console.log(clickedElementsList_valid[i]);
+        console.log(clickedElementsList_selected[i]);
+        console.log(clickedElementsList_xpath[i]);
+        console.log(clickedElementsList_ancestor[i]);
+        console.log(clickedElementsList_x[i]);
+        console.log(clickedElementsList_y[i]);
+        console.log(clickedElementsList_width[i]);
+        console.log(clickedElementsList_height[i]);
+        console.log(clickedElementsList_action[i]);
 
-        for(AcElements mapce : mapCE.values()){//遍历ClickElment的map
-            //     System.out.println(mapce);
-            String ancestorCE =mapce.getAncestor();
-            for(AcElementStore mapes : mapES.values()){//遍历AcElementStore的map
-                //         System.out.println(mapes);
-                String ancestorES =mapes.getElement().getAncestor();
-                if(ancestorCE.equals(ancestorES))//两者的ances相同
-                {
-                    mapout.put(num,mapes);
-                    num++;
-                    break;
-                }
-            }
+    }
+    function setclickedElementsList() {
+       // console.log(clickedElementsListAll);
+        var cELAll=clickedElementsListAll;
+        var i=0;
+        while(cELAll.indexOf("\r\n  action")!=-1)
+        {
+
+            clickedElementsList_url[i]=cELAll.substring(cELAll.indexOf("url: \"")+6,cELAll.indexOf("\"\r\n  tag"));
+            clickedElementsList_tag[i]=cELAll.substring(cELAll.indexOf("tag: \"")+6,cELAll.indexOf("\"\r\n  id"));
+            clickedElementsList_id[i]=cELAll.substring(cELAll.indexOf("id: \"")+5,cELAll.indexOf("\"\r\n  name"));
+            clickedElementsList_name[i]=cELAll.substring(cELAll.indexOf("name: \"")+7,cELAll.indexOf("\"\r\n  text"));
+            clickedElementsList_text[i]=cELAll.substring(cELAll.indexOf("text: \"")+7,cELAll.indexOf("\"\r\n  instance"));
+            clickedElementsList_instance[i]=cELAll.substring(cELAll.indexOf("instance: \"")+11,cELAll.indexOf("\"\r\n  depth"));
+            clickedElementsList_depth[i]=cELAll.substring(cELAll.indexOf("depth: \"")+8,cELAll.indexOf("\"\r\n  valid"));
+            clickedElementsList_valid[i]=cELAll.substring(cELAll.indexOf("valid: \"")+8,cELAll.indexOf("\"\r\n  selected"));
+            clickedElementsList_selected[i]=cELAll.substring(cELAll.indexOf("selected: \"")+11,cELAll.indexOf("\"\r\n  xpath"));
+            clickedElementsList_xpath[i]=cELAll.substring(cELAll.indexOf("xpath: \"")+8,cELAll.indexOf("\"\r\n  ancestor"));
+            clickedElementsList_ancestor[i]=cELAll.substring(cELAll.indexOf("ancestor: \"")+11,cELAll.indexOf("\"\r\n  x:"));
+            clickedElementsList_x[i]=cELAll.substring(cELAll.indexOf("  x: ")+5,cELAll.indexOf("\r\n  y:"));
+            clickedElementsList_y[i]=cELAll.substring(cELAll.indexOf("  y: ")+5,cELAll.indexOf("\r\n  width:"));
+            clickedElementsList_width[i]=cELAll.substring(cELAll.indexOf("  width: ")+9,cELAll.indexOf("\r\n  height"));
+            clickedElementsList_height[i]=cELAll.substring(cELAll.indexOf("  height: ")+10,cELAll.indexOf("\r\n  action"));
+            clickedElementsList_action[i]=cELAll.substring(cELAll.indexOf("action: \"")+9,cELAll.indexOf("\"\r\n- url:"));
+            cELAll=cELAll.substring(cELAll.indexOf("\r\n  action"));//先把最开始的url字符截掉，方便后续截取
+            cELAll=cELAll.substring(cELAll.indexOf("\"\r\n- url:")+3);
+            //console.log(cELAll);
+            i++;
         }
+        clickedElementsListnum=i;
+       // console.log(clickedElementsList_url);
+    }
+    function putelementStoreMap(){
+        var i=0;
+        console.log(elementStoreMap_ESName[i]);
+        console.log(elementStoreMap_reqDom[i]);
+        console.log(elementStoreMap_resDom[i]);
+        console.log(elementStoreMap_reqHash[i]);
+        console.log(elementStoreMap_resHash[i]);
+        console.log(elementStoreMap_reqImg[i]);
+        console.log(elementStoreMap_resImg[i]);
+        console.log(elementStoreMap_reqTime[i]);
+        console.log(elementStoreMap_resTime[i]);
+        console.log(elementStoreMap_clickedIndex[i]);
+        console.log(elementStoreMap_action[i]);
+        console.log(elementStoreMap_cEL_url[i]);
+        console.log(elementStoreMap_cEL_tag[i]);
+        console.log(elementStoreMap_cEL_id[i]);
+        console.log(elementStoreMap_cEL_name[i]);
+        console.log(elementStoreMap_cEL_text[i]);
+        console.log(elementStoreMap_cEL_instance[i]);
+        console.log(elementStoreMap_cEL_depth[i]);
+        console.log(elementStoreMap_cEL_valid[i]);
+        console.log(elementStoreMap_cEL_selected[i]);
+        console.log(elementStoreMap_cEL_xpath[i]);
+        console.log(elementStoreMap_cEL_ancestor[i]);
+        console.log(elementStoreMap_cEL_x[i]);
+        console.log(elementStoreMap_cEL_y[i]);
+        console.log(elementStoreMap_cEL_width[i]);
+        console.log(elementStoreMap_cEL_height[i]);
+        console.log(elementStoreMap_cEL_action[i]);
 
-        return mapout;
+    }
+    function setelementStoreMap(){
+      //  console.log(elementStoreMapAll);
+        var eSMAll=elementStoreMapAll;
+        var i=0;
+        while(eSMAll.indexOf("\r\n      action")!=-1)
+        {
+            //！以后再需要替换字符直接去setclickedElementsList 替换cELAll
+            elementStoreMap_ESName[i]=eSMAll.substring(eSMAll.indexOf("  ")+2,eSMAll.indexOf("\r\n    reqDom:")-1);
+            elementStoreMap_reqDom[i]=eSMAll.substring(eSMAll.indexOf("reqDom: \"")+9,eSMAll.indexOf("\"\r\n    resDom:")).replace(/\"/g,"Z1Z").replace(/\r\n/g,"Z2Z").replace(/</g,"Z3Z").replace(/>/g,"Z4Z").replace(/\\/g,"Z6Z");//replace(/\r\n/g,"<br/>");
+            elementStoreMap_resDom[i]=eSMAll.substring(eSMAll.indexOf("resDom: \"")+9,eSMAll.indexOf("\"\r\n    reqHash")).replace(/\"/g,"Z1Z").replace(/\r\n/g,"Z2Z").replace(/</g,"Z3Z").replace(/>/g,"Z4Z").replace(/\\/g,"Z6Z");//replace(/\r\n/g,"<br/>");
+            // elementStoreMap_resDom[i]=eSMAll.substring(eSMAll.indexOf("resDom: \"")+9,eSMAll.indexOf("\"\r\n    reqHash")).replace(/\"/g,"$").replace(/\r\n/g,"$&").replace(/</g,"$$&").replace(/>/g,"$$$");//replace(/\r\n/g,"<br/>");
+            elementStoreMap_reqHash[i]=eSMAll.substring(eSMAll.indexOf("reqHash: \"")+10,eSMAll.indexOf("\"\r\n    resHash"));
+            elementStoreMap_resHash[i]=eSMAll.substring(eSMAll.indexOf("resHash: \"")+10,eSMAll.indexOf("\"\r\n    reqImg"));
+            elementStoreMap_reqImg[i]=eSMAll.substring(eSMAll.indexOf("reqImg: \"")+9,eSMAll.indexOf("\"\r\n    resImg"));
+            elementStoreMap_resImg[i]=eSMAll.substring(eSMAll.indexOf("resImg: \"")+9,eSMAll.indexOf("\"\r\n    reqTime"));
+            elementStoreMap_reqTime[i]=eSMAll.substring(eSMAll.indexOf("reqTime: \"")+10,eSMAll.indexOf("\"\r\n    resTime"));
+            elementStoreMap_resTime[i]=eSMAll.substring(eSMAll.indexOf("resTime: \"")+10,eSMAll.indexOf("\"\r\n    clickedIndex"));
+            elementStoreMap_clickedIndex[i]=eSMAll.substring(eSMAll.indexOf("clickedIndex: ")+14,eSMAll.indexOf("\r\n    action"));
+            elementStoreMap_action[i]=eSMAll.substring(eSMAll.indexOf("action: \"")+9,eSMAll.indexOf("\"\r\n    element"));
+
+            elementStoreMap_cEL_url[i]=eSMAll.substring(eSMAll.indexOf("url: \"")+6,eSMAll.indexOf("\"\r\n      tag"));
+            elementStoreMap_cEL_tag[i]=eSMAll.substring(eSMAll.indexOf("tag: \"")+6,eSMAll.indexOf("\"\r\n      id"));
+            elementStoreMap_cEL_id[i]=eSMAll.substring(eSMAll.indexOf("id: \"")+5,eSMAll.indexOf("\"\r\n      name"));
+            elementStoreMap_cEL_name[i]=eSMAll.substring(eSMAll.indexOf("name: \"")+7,eSMAll.indexOf("\"\r\n      text"));
+            elementStoreMap_cEL_text[i]=eSMAll.substring(eSMAll.indexOf("text: \"")+7,eSMAll.indexOf("\"\r\n      instance"));
+            elementStoreMap_cEL_instance[i]=eSMAll.substring(eSMAll.indexOf("instance: \"")+11,eSMAll.indexOf("\"\r\n      depth"));
+            elementStoreMap_cEL_depth[i]=eSMAll.substring(eSMAll.indexOf("depth: \"")+8,eSMAll.indexOf("\"\r\n      valid"));
+            elementStoreMap_cEL_valid[i]=eSMAll.substring(eSMAll.indexOf("valid: \"")+8,eSMAll.indexOf("\"\r\n      selected"));
+            elementStoreMap_cEL_selected[i]=eSMAll.substring(eSMAll.indexOf("selected: \"")+11,eSMAll.indexOf("\"\r\n      xpath"));
+            elementStoreMap_cEL_xpath[i]=eSMAll.substring(eSMAll.indexOf("xpath: \"")+8,eSMAll.indexOf("\"\r\n      ancestor")).replace(/\'/g,"Z5Z");
+            elementStoreMap_cEL_ancestor[i]=eSMAll.substring(eSMAll.indexOf("ancestor: \"")+11,eSMAll.indexOf("\"\r\n      x:"));
+            elementStoreMap_cEL_x[i]=eSMAll.substring(eSMAll.indexOf("  x: ")+5,eSMAll.indexOf("\r\n      y:"));
+            elementStoreMap_cEL_y[i]=eSMAll.substring(eSMAll.indexOf("  y: ")+5,eSMAll.indexOf("\r\n      width:"));
+            elementStoreMap_cEL_width[i]=eSMAll.substring(eSMAll.indexOf("  width: ")+9,eSMAll.indexOf("\r\n      height"));
+            elementStoreMap_cEL_height[i]=eSMAll.substring(eSMAll.indexOf("  height: ")+10,eSMAll.indexOf("\r\n      action"));
+            eSMAll=eSMAll.substring(eSMAll.indexOf("\r\n      action:"));//把action字符前面截掉，使_cEL_action的eSMAll.indexOf("\"\r\n  ")有值
+           // elementStoreMap_cEL_action[i]=eSMAll.substring(eSMAll.indexOf("action: \"")+9,eSMAll.indexOf("\"\r\n  ")).replace(/\\/g,"Z6Z");//不这样写是因为最后一个数据没有\"\r\n  ，改为索引第二次出现"的位置
+            elementStoreMap_cEL_action[i]=eSMAll.substring(eSMAll.indexOf("action: \"")+9,eSMAll.indexOf("\"",eSMAll.indexOf("\"")+1)).replace(/\\/g,"Z6Z");//
+
+            eSMAll=eSMAll.substring(eSMAll.indexOf("action: \"")+9);//把action字符截掉(,该行还剩着"click")，开始下一次循环
+        //    aaa=eSMAll;
+           // console.log(eSMAll);
+
+            var shortIndex=elementStoreMap_ESName[i].lastIndexOf("_")>elementStoreMap_ESName[i].lastIndexOf("=")?elementStoreMap_ESName[i].lastIndexOf("_"):elementStoreMap_ESName[i].lastIndexOf("=");
+            elementStoreMap_shortIndex[i]=elementStoreMap_ESName[i].substring(shortIndex+1);
+
+            i++;
+        }
+    //    putelementStoreMap();
+        elementStoreMapnum=i;
     }
 
-
-    ArrayList<AcJumpToWithES> creatRalationByNodeWithElementStoreMap(Map<Integer, AcElementStore> ESlist,long reptId){//图中的节点按顺序连接
-        int CallNum=1;//访问的顺序
-        ArrayList<AcJumpToWithES> Jumpto = new ArrayList();//关系列表
-        for (int num=0; num<ESlist.size()-1; num++) {
-            // boolean hasRela=false;
-            //System.out.println(ESlist.get(num));
-            AcJumpToWithES AcTes = new AcJumpToWithES(ESlist.get(num), ESlist.get(num+1));//第一条关系
-            int Index = Search(Jumpto,AcTes.getStartNode().getElementStoreName(),AcTes.getEndNode().getElementStoreName());
-            if(Index>-1)//如果关系已存在
-            {
-                AcTes.setCallNum(Jumpto.get(Index).getCallNum()+String.valueOf(CallNum)+",");
-                CallNum=CallNum+1;
-                AcTes.setCallTime(Jumpto.get(Index).getCallTime()+1);
-                //  System.out.println(AcTes.getStartNode().getElementStoreName()+"→"+AcTes.getEndNode().getElementStoreName()+" 连接已存在");
-                Jumpto.set(Index,AcTes);
-            }
-            else
-            {
-                //   hasRela=false;
-                AcTes.setJumpByWithES("跳转到");
-                AcTes.setCallNum(String.valueOf(CallNum)+",");
-                CallNum=CallNum+1;
-                AcTes.setCallTime(1);
-                AcTes.setReportId(reptId);
-                Jumpto.add(AcTes);
-                // System.out.println(AcTes.getStartNode().getElementStoreName()+"→"+AcTes.getEndNode().getElementStoreName()+" 已连接");
-            }
-
+    function setCombinedInfo() {
+        var regEx="[\n`~!@#$%^&*()+=|{}':;',\\[\\].<>/?~！@#￥%……&*（）——+|{}（【】‘；：”“’。， 、？]";
+      //  for(Elements map2 : map.values())
+        for(var i=0;i<clickedElementsListnum;i++)//遍历ClickElment
+        {
+            var tag2=clickedElementsList_tag[i].replace("android.widget.","");
+            var id2=clickedElementsList_id[i].substring(clickedElementsList_id[i].lastIndexOf("/")+1);
+            var text2=clickedElementsList_text[i].replaceAll(regEx,"");
+            //System.out.println(id2);
+            //System.out.println(map2.getId());
+            var combined= clickedElementsList_url[i]+".tag="+tag2+".depth="+clickedElementsList_depth[i];//+".id="+map2.getId();+".text="+map2.getText();
+            if(!clickedElementsList_id[i]=="")//仍然是getid
+                combined=combined+".id="+id2;
+            if(!clickedElementsList_text[i]=="")
+                combined=combined+".text="+text2;
+            if(!clickedElementsList_name[i]=="")
+                combined=combined+".name="+clickedElementsList_name[i];
+            //System.out.println(combined);
+            clickedElementsList_combinedInfo[i]=combined;
         }
 
-        return Jumpto;
     }
 
-    ArrayList<AcJumpToWithES> parsetoGetJump(yamlDir, yamlPath,reptId)
+    var OrdereSM=[];//OrdereSM[0]=10代表(按遍历顺序)第一个结点为elementStoreMap_ESName[10]结点
+    function setOrdereSMByCombinedInfoFromcEL()
     {
+        var num=0;
+        for(var i=0;i<clickedElementsListnum;i++){//遍历ClickElment的map
+            var CombinedInfoCE =clickedElementsList_combinedInfo[i];
+            for(var j=0;j<elementStoreMapnum;j++){//遍历ElementStore的map
+                var InfoES =elementStoreMap_ESName[j];
+                if(CombinedInfoCE==InfoES)//两者的Info相同
+                {
+                //    console.log("i="+i+",j="+j);
+                    OrdereSM[num]=j;//存编号,OrdereSM[0]=10代表第一个结点为elementStoreMap_ESName[10]结点
+                    num++;
+                //   break;//不能写break，只会命中一次
+                }
 
-        AcToYamlUtil ty2 = new AcToYamlUtil();
-
-        var path = yamlDir;
-        if(StringUtils.isEmpty(yamlPath)){
-            path = yamlDir + "\\elements.yml";
+            }
         }
-        else{path = yamlDir+yamlPath;}
+       // console.log(num);
+    }
+    function addnode(i) {
+        //console.log(elementStoreMap_ESName);已经得到
+        //var queryStr =  'CREATE (n1:PageWithES{ name:\''+elementStoreMap_ESName[i]+'\'});';
+        // node1.setProperty("Number",num);???
+      //全
+       // var queryStr =  'CREATE (n1:PageWithES{ name:\''+elementStoreMap_shortIndex[i]+'\',ElementStoreName:\''+elementStoreMap_ESName[i]+'\',reqDom:\''+elementStoreMap_reqDom[i]+'\', resDom:\''+elementStoreMap_resDom[i]+'\',reqHash:\''+elementStoreMap_reqHash[i]+'\',resHash:\''+elementStoreMap_resHash[i]+'\',reqImg:\''+elementStoreMap_reqImg[i]+'\',resImg:\''+elementStoreMap_resImg[i]+'\',reqTime:\''+elementStoreMap_reqTime[i]+'\',resTime:\''+elementStoreMap_resTime[i]+'\',action:\''+elementStoreMap_action[i]+'\',clickedIndex:\''+elementStoreMap_clickedIndex[i]+'\',Elements_url:\''+elementStoreMap_cEL_url[i]+'\',Elements_tag:\''+elementStoreMap_cEL_tag[i]+'\',Elements_id:\''+elementStoreMap_cEL_id[i]+'\',Elements_name:\''+elementStoreMap_cEL_name[i]+'\',Elements_text:\''+elementStoreMap_cEL_text[i]+'\',Elements_instance:\''+elementStoreMap_cEL_instance[i]+'\',Elements_depth:\''+elementStoreMap_cEL_depth[i]+'\',Elements_valid:\''+elementStoreMap_cEL_valid[i]+'\',Elements_selected:\''+elementStoreMap_cEL_selected[i]+'\',Elements_xpath:\"'+elementStoreMap_cEL_xpath[i]+'\",Elements_ancestor:\''+elementStoreMap_cEL_ancestor[i]+'\',Elements_action:\''+elementStoreMap_cEL_x[i]+'\',Elements_x:\''+elementStoreMap_cEL_y[i]+'\',Elements_y:\''+elementStoreMap_cEL_width[i]+'\',Elements_width:\''+elementStoreMap_cEL_height[i]+'\',Elements_height:\''+elementStoreMap_cEL_action[i]+'\'}   );';
+       //少xpath，dom为单引号 可以运行
+    //    var queryStr =  'CREATE (n1:PageWithES{ name:\''+elementStoreMap_shortIndex[i]+'\',ElementStoreName:\''+elementStoreMap_ESName[i]+'\',reqDom:\''+elementStoreMap_reqDom[i]+'\', resDom:\''+elementStoreMap_resDom[i]+'\',reqHash:\''+elementStoreMap_reqHash[i]+'\',resHash:\''+elementStoreMap_resHash[i]+'\',reqImg:\''+elementStoreMap_reqImg[i]+'\',resImg:\''+elementStoreMap_resImg[i]+'\',reqTime:\''+elementStoreMap_reqTime[i]+'\',resTime:\''+elementStoreMap_resTime[i]+'\',action:\''+elementStoreMap_action[i]+'\',clickedIndex:\''+elementStoreMap_clickedIndex[i]+'\',Elements_url:\''+elementStoreMap_cEL_url[i]+'\',Elements_tag:\''+elementStoreMap_cEL_tag[i]+'\',Elements_id:\''+elementStoreMap_cEL_id[i]+'\',Elements_name:\''+elementStoreMap_cEL_name[i]+'\',Elements_text:\''+elementStoreMap_cEL_text[i]+'\',Elements_instance:\''+elementStoreMap_cEL_instance[i]+'\',Elements_depth:\''+elementStoreMap_cEL_depth[i]+'\',Elements_valid:\''+elementStoreMap_cEL_valid[i]+'\',Elements_selected:\''+elementStoreMap_cEL_selected[i]+'\',Elements_ancestor:\''+elementStoreMap_cEL_ancestor[i]+'\',Elements_action:\''+elementStoreMap_cEL_x[i]+'\',Elements_x:\''+elementStoreMap_cEL_y[i]+'\',Elements_y:\''+elementStoreMap_cEL_width[i]+'\',Elements_width:\''+elementStoreMap_cEL_height[i]+'\',Elements_height:\''+elementStoreMap_cEL_action[i]+'\'}   );';
+//       //少xpath，dom为双引号 不可以运行
+  //     var queryStr =  'CREATE (n1:PageWithES{ name:\''+elementStoreMap_shortIndex[i]+'\',ElementStoreName:\''+elementStoreMap_ESName[i]+'\',reqDom:\"'+elementStoreMap_reqDom[i]+'\", resDom:\"'+elementStoreMap_resDom[i]+'\",reqHash:\''+elementStoreMap_reqHash[i]+'\',resHash:\''+elementStoreMap_resHash[i]+'\',reqImg:\''+elementStoreMap_reqImg[i]+'\',resImg:\''+elementStoreMap_resImg[i]+'\',reqTime:\''+elementStoreMap_reqTime[i]+'\',resTime:\''+elementStoreMap_resTime[i]+'\',action:\''+elementStoreMap_action[i]+'\',clickedIndex:\''+elementStoreMap_clickedIndex[i]+'\',Elements_url:\''+elementStoreMap_cEL_url[i]+'\',Elements_tag:\''+elementStoreMap_cEL_tag[i]+'\',Elements_id:\''+elementStoreMap_cEL_id[i]+'\',Elements_name:\''+elementStoreMap_cEL_name[i]+'\',Elements_text:\''+elementStoreMap_cEL_text[i]+'\',Elements_instance:\''+elementStoreMap_cEL_instance[i]+'\',Elements_depth:\''+elementStoreMap_cEL_depth[i]+'\',Elements_valid:\''+elementStoreMap_cEL_valid[i]+'\',Elements_selected:\''+elementStoreMap_cEL_selected[i]+'\',Elements_ancestor:\''+elementStoreMap_cEL_ancestor[i]+'\',Elements_action:\''+elementStoreMap_cEL_x[i]+'\',Elements_x:\''+elementStoreMap_cEL_y[i]+'\',Elements_y:\''+elementStoreMap_cEL_width[i]+'\',Elements_width:\''+elementStoreMap_cEL_height[i]+'\',Elements_height:\''+elementStoreMap_cEL_action[i]+'\'}   );';
+        //少dom，xpath为双引号
+        //    var queryStr =  'CREATE (n1:PageWithES{ name:\''+elementStoreMap_shortIndex[i]+'\',ElementStoreName:\''+elementStoreMap_ESName[i]+'\',reqHash:\''+elementStoreMap_reqHash[i]+'\',resHash:\''+elementStoreMap_resHash[i]+'\',reqImg:\''+elementStoreMap_reqImg[i]+'\',resImg:\''+elementStoreMap_resImg[i]+'\',reqTime:\''+elementStoreMap_reqTime[i]+'\',resTime:\''+elementStoreMap_resTime[i]+'\',action:\''+elementStoreMap_action[i]+'\',clickedIndex:\''+elementStoreMap_clickedIndex[i]+'\',Elements_url:\''+elementStoreMap_cEL_url[i]+'\',Elements_tag:\''+elementStoreMap_cEL_tag[i]+'\',Elements_id:\''+elementStoreMap_cEL_id[i]+'\',Elements_name:\''+elementStoreMap_cEL_name[i]+'\',Elements_text:\''+elementStoreMap_cEL_text[i]+'\',Elements_instance:\''+elementStoreMap_cEL_instance[i]+'\',Elements_depth:\''+elementStoreMap_cEL_depth[i]+'\',Elements_valid:\''+elementStoreMap_cEL_valid[i]+'\',Elements_selected:\''+elementStoreMap_cEL_selected[i]+'\',Elements_xpath:\"'+elementStoreMap_cEL_xpath[i]+'\",Elements_ancestor:\''+elementStoreMap_cEL_ancestor[i]+'\',Elements_action:\''+elementStoreMap_cEL_x[i]+'\',Elements_x:\''+elementStoreMap_cEL_y[i]+'\',Elements_y:\''+elementStoreMap_cEL_width[i]+'\',Elements_width:\''+elementStoreMap_cEL_height[i]+'\',Elements_height:\''+elementStoreMap_cEL_action[i]+'\'}   );';
+        //以上几个语句后面几项错乱了
+        //全
+        var queryStr =  'CREATE (n1:PageWithES{ name:\''+elementStoreMap_shortIndex[i]+'\',ElementStoreName:\''+elementStoreMap_ESName[i]+'\',reqDom:\''+elementStoreMap_reqDom[i]+'\', resDom:\''+elementStoreMap_resDom[i]+'\',reqHash:\''+elementStoreMap_reqHash[i]+'\',resHash:\''+elementStoreMap_resHash[i]+'\',reqImg:\''+elementStoreMap_reqImg[i]+'\',resImg:\''+elementStoreMap_resImg[i]+'\',reqTime:\''+elementStoreMap_reqTime[i]+'\',resTime:\''+elementStoreMap_resTime[i]+'\',action:\''+elementStoreMap_action[i]+'\',clickedIndex:\''+elementStoreMap_clickedIndex[i]+'\',Elements_url:\''+elementStoreMap_cEL_url[i]+'\',Elements_tag:\''+elementStoreMap_cEL_tag[i]+'\',Elements_id:\''+elementStoreMap_cEL_id[i]+'\',Elements_name:\''+elementStoreMap_cEL_name[i]+'\',Elements_text:\''+elementStoreMap_cEL_text[i]+'\',Elements_instance:\''+elementStoreMap_cEL_instance[i]+'\',Elements_depth:\''+elementStoreMap_cEL_depth[i]+'\',Elements_valid:\''+elementStoreMap_cEL_valid[i]+'\',Elements_selected:\''+elementStoreMap_cEL_selected[i]+'\',Elements_xpath:\''+elementStoreMap_cEL_xpath[i]+'\',Elements_ancestor:\''+elementStoreMap_cEL_ancestor[i]+'\',Elements_action:\''+elementStoreMap_cEL_action[i]+'\',Elements_x:\''+elementStoreMap_cEL_x[i]+'\',Elements_y:\''+elementStoreMap_cEL_y[i]+'\',Elements_width:\''+elementStoreMap_cEL_width[i]+'\',Elements_height:\''+elementStoreMap_cEL_height[i]+'\'}   );';
 
-        //System.out.println(path);
-        //获取clickedElements并保存到Elements类中
-        Map<Integer, AcElements> clkMap=ty2.getYamlclickedAcElementsListWithClass(path);
-        //读取AcElements.yml文件的AcElementStore并尝试在图中建立结点
-        Map<Integer, AcElementStore> esMap=ty2.getYamlAcElementStoreMapWithClass(path,reptId);
-        //按照clickedAcElements中的顺序填充数据
-        Map<Integer,AcElementStore>  ordMap= getOrderFromClickElmentAndgetInfoFromElementStore(clkMap,esMap);
 
-        //ArrayList<AcElementStore> AcEs =addNodeWithElementStoreMap(ordMap);//没有用，白写了
-        //ArrayList<AcJumpToWithES> JumpTo=creatRalationByNodeWithElementStoreMap(AcEs,reptId);//创建节点间关系
-        ArrayList<AcJumpToWithES> JumpTo=creatRalationByNodeWithElementStoreMap(ordMap,reptId);//创建节点间关系
-        //return JumpTo;
+        var jqxhr = $.post(neo4jAPIURL, '{"statements":[{"statement":"' + queryStr + '", "includeStats" : true}]}',
+            function(data) {
+                console.log(data);
+                if(data.results[0].stats.labels_added==1)
+                {
+                    console.log("创建成功"+i);
+                }
+                else {
+                    console.log("创建失败"+i);
+                }
+            }, 'json');
+    }
+
+    function addNodeWithElementStoreMap(){
+        for(var i=0;i<elementStoreMapnum;i++)
+        {
+            addnode(i);
+        }
+
+
+    }
+
+    function readYmlfile()
+    {
+        var filelog="http://127.0.0.1:8887"+"/IdeaProjects/20201231104305_gov.hgm.hgmeap"+"/"+"elements.yml";
+        console.log(filelog);
+        $("#FileCache").load(filelog,function(response){
+            filecontent=response;
+            readFileByLines();
+            clickedElementsListAll=filecontent.substring(filecontent.indexOf("clickedElementsList:"));//得到clickedElementsList部分
+            setclickedElementsList();//保存到[]中，同getYamlclickedElementsListWithClass功能同
+            elementStoreMapAll=filecontent.substring(0,filecontent.indexOf("clickedElementsList:"));//得到elementStoreMap部分
+            setelementStoreMap();//保存到[]中，同getYamlelementStoreMapWithClass功能同
+            setCombinedInfo();//合并信息，准备对比(//拼接clickedElements中的信息从而与ElementStore的name比较)
+            setOrdereSMByCombinedInfoFromcEL();//设定elementStoreMap，（通过其内的合并信息与clickedElementsList对比），
+                                                // 同getOrderFromClickElmentByCombinedInfoAndgetInfoFromElementStore
+            addNodeWithElementStoreMap();
+
+        });
+
 
     }
 
@@ -317,13 +367,9 @@
     $(function() {
         var neo4jLogin = 'neo4j';
         var neo4jPassword = 'password';
+        setupNeo4jLoginForAjax(neo4jLogin, neo4jPassword);
 
-        var TCnum_nodelist_cache=sessionStorage.getItem('TCnum_nodelist');//getItem为一串字符
-        var TCnum_nodenamelist_cache=sessionStorage.getItem('TCnum_nodenamelist');
-
-
-        ArrayList<AcJumpToWithES> list=parsetoGetJump(y20201231104305,"\\elements.yml",0);
-        console.log(list);
+        readYmlfile();
 
     });
 </script>

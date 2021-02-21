@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta http-equiv="Content-Type" content="text/html"; charset="GB2312">
+    <meta http-equiv="Content-Type" content="text/html"; charset="UTF-8">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>ÒÆ¶¯Ó¦ÓÃµÄ²âÊÔ¿ÉÊÓ»¯ÏµÍ³ - A D3JS work with Neo4j</title>
+    <title>ç§»åŠ¨åº”ç”¨çš„æµ‹è¯•å¯è§†åŒ–ç³»ç»Ÿ - A D3JS work with Neo4j</title>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <link rel="stylesheet" href="css/font-awesome.min.css">
@@ -23,7 +23,7 @@
 
 <div class="container-fluid">
     <div class="row" style="height:70px; margin-bottom: 15px"; >
-        <div class="col col-10 col-md-10 form-inline" style="background-color:lavender;"><h1>»ñÈ¡Î´±éÀú¿Ø¼ş</h1></div>
+        <div class="col col-10 col-md-10 form-inline" style="background-color:lavender;"><h1>è·å–æœªéå†æ§ä»¶</h1></div>
         <div class="col col-1 col-md-1 form-inline" style="background-color:lavender;">
             <a href="query.html"><button type="button" class="btn btn-outline-primary" id="btnHome" style="background-color: white">
                 <i class="fa fa-home" aria-hidden="true"></i>
@@ -42,12 +42,8 @@
 
     <hr/>
     <div class="row" style="margin-left: 30px;margin-right: 50px;margin-bottom: 10px" >
-        <h5><div id="node3">Î´±éÀúµÄ¿Ø¼şÓĞ</div></h5>
+        <h5><div id="node3">æœ¬é¡µé¢ä¸­æœªéå†çš„æ§ä»¶æœ‰</div></h5>
 
-
-    <button type="button" class="btn btn-outline-primary btn-sm" id="btnUnfold" style="margin-left:50px;">
-        <i class="fa fa-folder-open" aria-hidden="true"></i> Õ¹¿ª
-    </button>
 
     </div>
     <div id="nodeInfoTable"   class="col col-12 col-md-12">
@@ -56,7 +52,7 @@
     </div>
 
 
-    </div>
+</div>
 
 
 
@@ -81,7 +77,7 @@
 
     var nodeIndex;
     var id;
-    var name;//domÎÄ¼şÃû×Ö
+    var name;//domæ–‡ä»¶åå­—
     var ifgetLog=false;
     var domcontent=[];
 
@@ -95,18 +91,17 @@
 
 
 
-    function showDomFile(){//²é¿´DOMÎÄ¼ş
-        var filename=sessionStorage.getItem('absopath')+"\\"+nodeIndex+"_"+name+".dom";//ÕıÈ·µÄdomÎÄ¼şµÄ¾ø¶ÔÂ·¾¶
+    function showDomFile(){//æŸ¥çœ‹DOMæ–‡ä»¶
+        var filename=sessionStorage.getItem('absopath')+"\\"+nodeIndex+"_"+name+".dom";//æ­£ç¡®çš„domæ–‡ä»¶çš„ç»å¯¹è·¯å¾„
         var filenameChrome="http://127.0.0.1:8887"+"/IdeaProjects/20201231104305_gov.hgm.hgmeap"+"/"+nodeIndex+"_"+name+".dom";
 
         window.open(filenameChrome, null);
 
     }
 
-    function showSuite(){
+    function showSuite(){//ä¸è¯¥å«showSuite,å®é™…ä¸ºdomæ–‡ä»¶è¯»å–å¤„ç†å†…å®¹
         /*
                     var htmlobj=$.ajax({url:"http://127.0.0.1:8887/IdeaProjects/20201231104305_gov.hgm.hgmeap/appcrawler.log",async:false});
-
                       var filenameChrome="http://127.0.0.1:8887"+"/IdeaProjects/20201231104305_gov.hgm.hgmeap"+"/"+nodeIndex+"_"+nodeName+".click.png";
         */
 
@@ -116,21 +111,21 @@
             console.log(filelog);
             $("#RecordBoxCache").load(filelog,function(response){
                 var filecontent=response;
-              //  console.log(filecontent);
+                //  console.log(filecontent);
                 var fctn;
                 var i=0;
                 while(filecontent.indexOf("\n")!=-1)
                 {
-                    fctn=filecontent.substring(0,filecontent.indexOf("\n"));//Ã¿Ò»ĞĞ
-                //    console.log(fctn);
-                    if(fctn.indexOf("clickable=\"true\"")!=-1 || fctn.indexOf("scrollable=\"true\"")!=-1)//´æÔÚ¿ÉÒÔµã»÷»òÕßµÄ¿Ø¼ş
+                    fctn=filecontent.substring(0,filecontent.indexOf("\n"));//æ¯ä¸€è¡Œ
+                    //    console.log(fctn);
+                    if(fctn.indexOf("clickable=\"true\"")!=-1 || fctn.indexOf("scrollable=\"true\"")!=-1)//å­˜åœ¨å¯ä»¥ç‚¹å‡»æˆ–è€…çš„æ§ä»¶
                     {
-                        var dctn=fctn.substring(fctn.indexOf("<"));//È¥µôÇ°ÃæµÄ¿Õ¸ñ
-                        dctn=dctn.replace("<","&lt;");//·ÀÖ¹±»ä¯ÀÀÆ÷µ±×÷Õı³£±êÇ©½âÎö
+                        var dctn=fctn.substring(fctn.indexOf("<"));//å»æ‰å‰é¢çš„ç©ºæ ¼
+                        dctn=dctn.replace("<","&lt;");//é˜²æ­¢è¢«æµè§ˆå™¨å½“ä½œæ­£å¸¸æ ‡ç­¾è§£æ
                         dctn=dctn.replace(">","&gt;");
 
-                        dctn=dctn.replace(" clickable=","<br/>clickable=");//ÊÖ¶¯»»ĞĞ£¬¸ñÊ½ÇåÎú
-                        dctn=dctn.replace(" package=","<br/>package=");//ÊÖ¶¯»»ĞĞ£¬¸ñÊ½ÇåÎú
+                        dctn=dctn.replace(" clickable=","<br/>clickable=");//æ‰‹åŠ¨æ¢è¡Œï¼Œæ ¼å¼æ¸…æ™°
+                        dctn=dctn.replace(" package=","<br/>package=");//æ‰‹åŠ¨æ¢è¡Œï¼Œæ ¼å¼æ¸…æ™°
 
                         domcontent[i]=dctn;
                         i++;
@@ -148,18 +143,18 @@
     }
 
 
-    
+
     function setButtons(i) {
         var td=document.getElementById("td"+i)
-       // console.log(td);
+        // console.log(td);
         var o=document.createElement("input");
         o.type = "button" ;
-        o.value = "Éú³É¶ÔÓ¦²âÊÔÓÃÀı";
-        o.id="btn"+i; //´«µİiÖµ´Ó¶ø»ñÈ¡ ĞèÒª·ÖÎöµÄ²âÊÔÓÃÀı ÔÚnodelistµÄĞĞÊı
+        o.value = "ç”Ÿæˆå¯¹åº”æµ‹è¯•ç”¨ä¾‹";
+        o.id="btn"+i; //ä¼ é€’iå€¼ä»è€Œè·å– éœ€è¦åˆ†æçš„æµ‹è¯•ç”¨ä¾‹ åœ¨nodelistçš„è¡Œæ•°
         o.className="btn btn-outline-primary btn-sm";//
         o.style.cssText ="float:right;margin-top:20px";
         o.addEventListener("click",showtestcase);
-      //  console.log(o);
+        //  console.log(o);
         td.appendChild(o);
         o = null;
 
@@ -171,17 +166,17 @@
         var data="<table>"
         for(var i=0;i<domcontent.length;i++)
         {
-            var type="ÆäËû";
+            var type="å…¶ä»–";
             if(domcontent[i].indexOf("clickable=\"true\"")!=-1)
             {
-                type="°´Å¥"
+                type="æŒ‰é’®"
             }
             else    if(domcontent[i].indexOf("scrollable=\"true\"")!=-1)
             {
-                type="¹ö¶¯Ìõ"
+                type="æ»šåŠ¨æ¡"
             }
             data += "<tr>";
-            data += "<td style='width: 100px'><strong>" + type + "<br/>ÀàĞÍ</strong></td>";
+            data += "<td style='width: 100px'><strong>" + type + "<br/>ç±»å‹</strong></td>";
             data += "<td > "+domcontent[i]+"</td>";//<xmp>
             var idd="td"+i;
             data += "<td id="+idd+"></td>";
@@ -194,17 +189,17 @@
 
         for(var i=0;i<domcontent.length;i++)
         {
-            setButtons(i);//²»ÄÜ·Åµ½ÉÏÃæÒ»¸öÑ­»·ÖĞ
+            setButtons(i);//ä¸èƒ½æ”¾åˆ°ä¸Šé¢ä¸€ä¸ªå¾ªç¯ä¸­
         }
 
 
     }
     function showtestcase() {
-        var rownum = this.id;//±ØĞë·ÅÔÚ¸Ãº¯ÊıÄÚ
+        var rownum = this.id;//å¿…é¡»æ”¾åœ¨è¯¥å‡½æ•°å†…
         console.log(rownum);
-        rownum=rownum.toString().substring(3);//Í¨¹ı°´Å¥µÄid±àºÅ»ñÈ¡nodelistËùÔÚĞĞÊı
-        CreatShorestPathtoThisNode(id,rownum);//ÏÈµÃµ½´ÓÆğµãÖÁ´ËµÄ×î½üÂ·¾¶
-        //Ìø×ªÒ³Ãæº¯ÊıÔÚÒÔÉÏº¯ÊıÄÚ
+        rownum=rownum.toString().substring(3);//é€šè¿‡æŒ‰é’®çš„idç¼–å·è·å–nodelistæ‰€åœ¨è¡Œæ•°
+        CreatShorestPathtoThisNode(id,rownum);//å…ˆå¾—åˆ°ä»èµ·ç‚¹è‡³æ­¤çš„æœ€è¿‘è·¯å¾„
+        //è·³è½¬é¡µé¢å‡½æ•°åœ¨ä»¥ä¸Šå‡½æ•°å†…
     }
 
     var nodelist=[];
@@ -223,7 +218,7 @@
                         //console.log(neo4jNodeItm);
                         neo4jNodeItm.forEach(function (meta,index) {
                             //  console.log(meta.id);
-                            if(index%2==0){//²»´æ´¢¹ØÏµĞÅÏ¢£¬ÓĞÓàÊıÊ±Ìø¹ı
+                            if(index%2==0){//ä¸å­˜å‚¨å…³ç³»ä¿¡æ¯ï¼Œæœ‰ä½™æ•°æ—¶è·³è¿‡
                                 nodelist[j]=meta.id;
                                 console.log("nodelist["+j+"]="+meta.id);
                                 j++;
@@ -235,10 +230,10 @@
 
         setTimeout(function(){
             sessionStorage.setItem('nodelist',nodelist);//
-            //ÔÙÌí¼ÓÒ»¾äµ½Ñ¡¶¨µÄ¿Ø¼şµÄ²âÊÔÓÃÀıÓï¾ä
+            //å†æ·»åŠ ä¸€å¥åˆ°é€‰å®šçš„æ§ä»¶çš„æµ‹è¯•ç”¨ä¾‹è¯­å¥
             // <android.widget.TextView bounds="[331,76][389,115]" checkable="false" checked="false" class="android.widget.TextView"
             //package="gov.hgm.hgmeap" password="false" resource-id="gov.hgm.hgmeap:id/scienceTitleBarTvTitle" scrollable="false" selected="false" text="???"/>
-            //      ×ª»»³É
+            //      è½¬æ¢æˆ
             //    android.widget.TextView[@class='android.widget.TextView' and @resource-id='gov.hgm.hgmeap:id/scienceTitleBarTvTitle']
             //    android.widget.TextView[@class="android.widget.TextView" and @resource-id="gov.hgm.hgmeap:id/scienceTitleBarTvTitle"
             var str=domcontent[rownum];
@@ -247,21 +242,18 @@
             var strclass=str.substring(str.indexOf("class="),str.indexOf("<br/>clickable="));
             var strresource=str.substring(str.indexOf("resource-id="),str.indexOf(" scrollable="));
             var strtestcase=strname+"[@"+strclass+" and @"+strresource+"]";
-            strtestcase=strtestcase.replace("\"","'");//ÕâÀïÓÃµ¥ÒıºÅ
-            sessionStorage.setItem('nodelist_add',strtestcase);//±¾¿Ø¼ş¶îÍâµÄ²âÊÔÓÃÀıÓï¾ä
+            strtestcase=strtestcase.replace("\"","'");//è¿™é‡Œç”¨å•å¼•å·
+            sessionStorage.setItem('nodelist_add',strtestcase);//æœ¬æ§ä»¶é¢å¤–çš„æµ‹è¯•ç”¨ä¾‹è¯­å¥
             console.log(strtestcase);
             var url = "testcasecreated.html";
             window.open(url);
-            sessionStorage.removeItem("nodelist_add");//±¾Ò³ÃæÒ²Òª¼°Ê±Çå³ı
-        },500);//ÑÓÊ±µÈ´ı
+            sessionStorage.removeItem("nodelist_add");//æœ¬é¡µé¢ä¹Ÿè¦åŠæ—¶æ¸…é™¤
+        },500);//å»¶æ—¶ç­‰å¾…
     }
 
 
 
 
-    $('#btnUnfold').click(            function() {openAll()}            );
-    $('#btnFold1').click(            function() {closeAll()}            );
-    $('#btnFold2').click(            function() {closeAll()}            );
 
 
     //Page Init
@@ -270,7 +262,7 @@
         var neo4jPassword = 'password';
         id = $.query.get("id");
         nodeIndex = $.query.get("nodeIndex");
-        name = sessionStorage.getItem("nodeDomName");//ÄÚÓĞ=µÈ·ûºÅ£¬$.query.get²»ÍêÕû
+        name = sessionStorage.getItem("nodeDomName");//å†…æœ‰=ç­‰ç¬¦å·ï¼Œ$.query.getä¸å®Œæ•´
         setupNeo4jLoginForAjax(neo4jLogin, neo4jPassword);
         showSuite();
         //setTableInfo();

@@ -937,6 +937,12 @@
     $("#fileUpload").click();
   }
 
+  function jumpcompare()
+  {
+    var url = "querycompare.html";
+    window.location.href = url;
+  }
+
 
   function GlobalConfig(abpath) {
     sessionStorage.setItem('absopath',abpath);
@@ -973,6 +979,7 @@
     $('#btnShowcase').click(            function() {jumptestcase()}   );
     $('#btnOpen').click(            function() {openfilefloder()}   );
     $('#btnNum').click(            function() {solveTestcase()}   );
+    $('#btnCmp').click(            function() {jumpcompare()}   );
 
 
     document.getElementById("btnShowpath").disabled=true;//没有选取结点时不可以点击

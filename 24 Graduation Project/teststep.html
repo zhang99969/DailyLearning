@@ -425,8 +425,10 @@
             sessionStorage.setItem('nodeDomName',nodeName);
             window.location.href = url;
         }
+
+        var nodeshortname;//在对应页面的圆形按钮下方显示
         function getNext() {
-            var url = "traversegetnext.html?id="+id;//此处拼接内容
+            var url = "traversegetnext.html?id="+id+"&name="+nodeshortname;
             window.location.href = url;
         }
 
@@ -443,6 +445,7 @@
 
                            // $("#name").text(neo4jNodeItm.properties.name);
                             $("#name").text(neo4jNodeItm.properties.ElementStoreName);
+                            nodeshortname=neo4jNodeItm.properties.name;//shortname
                             $("#name2").text("clickedIndex="+neo4jNodeItm.properties.clickedIndex+" action="+neo4jNodeItm.properties.action+" xpath="+neo4jNodeItm.properties.Elements_xpath);
                             $("#reqHash").text(neo4jNodeItm.properties.reqHash);
                             $("#resHash").text(neo4jNodeItm.properties.resHash);
