@@ -331,7 +331,10 @@
 
             if(!ifgetLog){
                 //var filelog="/d3js-neo4j-example-master/appcrawler.log"; //暂时使用，UTF-8
-                var filelog="http://127.0.0.1:8887"+"/IdeaProjects/20201231104305_gov.hgm.hgmeap/appcrawler.log";
+                //var filelog="http://127.0.0.1:8887"+"/IdeaProjects/20201231104305_gov.hgm.hgmeap/appcrawler.log";
+                var filelog="http://127.0.0.1:8887"+localStorage.getItem('absopath')+"/appcrawler.log";
+
+
                 //搭配Allow CORS: Access-Control-Allow-Origin 扩展程序
                 //$("#LogBox").load(filelog,LogSubstring());
                 //LogBoxCache
@@ -368,9 +371,11 @@
             document.getElementById("table-div-Log").style.display="none";
 
             //参考showDomFile的说明
-           var filenameChrome="http://127.0.0.1:8887"+"/IdeaProjects/20201231104305_gov.hgm.hgmeap"+"/"+nodeIndex+"_"+nodeName+".click.png";
+          //  var filenameChrome="http://127.0.0.1:8887"+"/IdeaProjects/20201231104305_gov.hgm.hgmeap"+"/"+nodeIndex+"_"+nodeName+".click.png";
+            var filenameChrome="http://127.0.0.1:8887"+localStorage.getItem('absopath')+"/"+nodeIndex+"_"+nodeName+".click.png";
           //  window.open(filenameChrome, null);
-           var filenameChrome2="http://127.0.0.1:8887"+"/IdeaProjects/20201231104305_gov.hgm.hgmeap"+"/"+nodeIndex+"_"+nodeName+".clicked.png";
+      //     var filenameChrome2="http://127.0.0.1:8887"+"/IdeaProjects/20201231104305_gov.hgm.hgmeap"+"/"+nodeIndex+"_"+nodeName+".clicked.png";
+            var filenameChrome2="http://127.0.0.1:8887"+localStorage.getItem('absopath')+"/"+nodeIndex+"_"+nodeName+".clicked.png";
         //    window.open(filenameChrome, null);
 
             document.getElementById('image').src = filenameChrome;
@@ -380,10 +385,13 @@
 
 
         function showDomFile(){//查看DOM文件
-            var filename=sessionStorage.getItem('absopath')+"\\"+nodeIndex+"_"+nodeName+".dom";//正确的dom文件的绝对路径
+         //   var filename=sessionStorage.getItem('absopath')+"\\"+nodeIndex+"_"+nodeName+".dom";//正确的dom文件的绝对路径
            // console.log(filename);
-            var filenameChrome="http://127.0.0.1:8887"+"/IdeaProjects/20201231104305_gov.hgm.hgmeap"+"/"+nodeIndex+"_"+nodeName+".dom";
-        //使用Web Server for Chrome 指定路径为该链接，http://127.0.0.1:8887路径指定为D盘
+        //    var filenameChrome="http://127.0.0.1:8887"+"/IdeaProjects/20201231104305_gov.hgm.hgmeap"+"/"+nodeIndex+"_"+nodeName+".dom";
+            var filenameChrome="http://127.0.0.1:8887"+localStorage.getItem('absopath')+"/"+nodeIndex+"_"+nodeName+".dom";
+
+
+            //使用Web Server for Chrome 指定路径为该链接，http://127.0.0.1:8887路径指定为D盘
            // console.log(filenameChrome);
             window.open(filenameChrome, null);
             /*      var htmlobj=$.ajax({url:filenameChrome,async:false});
@@ -481,7 +489,7 @@
 
 
 
-                            console.log( sessionStorage.getItem('absopath'));
+                            console.log( localStorage.getItem('absopath'));
                             /*if (dataItem.graph.nodes != null && dataItem.graph.nodes.length > 0) {//整个if都可以删掉了
                                 var neo4jNodeItmArray = dataItem.graph.nodes;
 

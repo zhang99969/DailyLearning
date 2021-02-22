@@ -63,7 +63,7 @@
       </button>
 
     </div>
-    <div class="col col-1 col-md-1 form-inline">111
+    <div class="col col-1 col-md-1 form-inline">
     </div>
   </div>
 </div>
@@ -451,7 +451,7 @@
         return;
       }
       if ($('#chkboxCypherQry:checked').val() != 1)//未勾选
-      {queryStr = 'match (n) where n.name =~ \'(?i).*' + queryStr + '.*\' return n';
+      {queryStr = 'match (n:PageWithES{PageWithESFrom:\''+ localStorage.getItem('PageWithESFrom')+'\'}) where n.name =~ \'(?i).*' + queryStr + '.*\' return n';
       }
     //  clickednodeplus=true;不能放在这里，因为查看全图的时候queryText中被悄悄赋值成了搜索语句
     } else
@@ -647,7 +647,7 @@
   function showDefaultGraph()
   {
     //进入页面默认显示完整的图结构
-    $("#queryText").val("MATCH (f1:PageWithES) MATCH path = (f1)-[]->(f:PageWithES) RETURN path;");
+    $("#queryText").val("MATCH (f1:PageWithES{PageWithESFrom:\'"+ localStorage.getItem('PageWithESFrom')+"\'}) MATCH path = (f1)-[]->(f:PageWithES) RETURN path;");
     if(! $("#chkboxCypherQry").is(":checked")) {
       $("#chkboxCypherQry").click();
       submitQuery();
@@ -683,10 +683,7 @@
 
   }
 
-  function generateGraph()//选取文件夹后生成解析报告文件，保存数据到图数据库
-  {
 
-  }
 
   function jumpteststep(){//跳转到测试步骤页面
 
@@ -945,8 +942,15 @@
 
 
   function GlobalConfig(abpath) {
-    sessionStorage.setItem('absopath',abpath);
+    //abpath=abpath.substring(2);//去掉D:
+    abpath="\\IdeaProjects\\"+abpath;//所有文件都在这个目录，无法获取绝对位置
+    localStorage.removeItem('absopath');
+    localStorage.setItem('absopath',abpath);
+    var PageWithESFrom=abpath.substring(abpath.lastIndexOf("\\")+1);//测试报告文件夹名
+    localStorage.setItem('PageWithESFrom',PageWithESFrom);
     console.log(abpath);
+
+
   }
 
   function solveTestcase(){
@@ -964,13 +968,14 @@
     //var svg = d3.select('#propertiesBox');
   //  svg.attr('width', 1024);
 
+    var filename=localStorage.getItem('PageWithESFrom');
+    $("#name").text(filename);
 
     $('#queryText').keyup(function(e) {
       if(e.which == 13) {
         submitQuery();
       }
     });
-
 
     $('#btnSend').click(            function() {submitQuery()}            );
     $('#btnBack').click(            function() {showDefaultGraph()}    );
@@ -987,15 +992,45 @@
 
 
     $("#fileUpload").change(function () {
-      //console.log($("#fileUpload")[0].files);
+      console.log($("#fileUpload")[0].files);
+      console.log($("#fileUpload"));
+      console.log($("#fileUpload").value);
+
+
       var fileflodername = $("#fileUpload")[0].files[0].webkitRelativePath;// 如1/1.txt
       var index=fileflodername.indexOf("/");
       fileflodername=fileflodername.substring(0,index);
+      //var absopath//="D:\\IdeaProjects\\20201231104305_gov.hgm.hgmeap";//绝对路径，之后改为获取服务器文件夹地址
+      GlobalConfig(fileflodername);
       //console.log(fileflodername);
-      $("#name").text(fileflodername);
-      generateGraph();
-      var absopath="D:\\IdeaProjects\\20201231104305_gov.hgm.hgmeap";//绝对路径，之后改为获取服务器文件夹地址
-      GlobalConfig(absopath);
+
+      var PageWithESFrom=localStorage.getItem('PageWithESFrom');
+      if(localStorage.getItem('PageWithESType')==null)//系统第一次读取
+      {
+        localStorage.setItem('PageWithESType',PageWithESFrom);
+        console.log("set");
+        var url = "queryfile.html";
+        window.location.href = url;
+      }
+      else{
+        var Graphlistnow=localStorage.getItem('PageWithESType');
+        if(Graphlistnow.indexOf(PageWithESFrom)!=-1)// //当前测试报告已经进行过分析，直接展示
+        {
+          localStorage.setItem('PageWithESFrom',PageWithESFrom);
+          window.location.reload();
+        }
+        else
+        {
+          Graphlistnow=Graphlistnow+","+PageWithESFrom;
+          localStorage.setItem('PageWithESType',Graphlistnow);
+          var url = "queryfile.html";
+          window.location.href = url;
+        }
+
+      }
+
+
+
     });
 
 

@@ -121,7 +121,9 @@
 
 
         if(!ifgetLog){
-            var filelog="http://127.0.0.1:8887"+"/IdeaProjects/20201231104305_gov.hgm.hgmeap/index.html";
+            //var filelog="http://127.0.0.1:8887"+"/IdeaProjects/20201231104305_gov.hgm.hgmeap/index.html";
+            var filelog="http://127.0.0.1:8887"+localStorage.getItem('absopath')+"/index.html";
+
             console.log(filelog);
             $("#RecordBoxCache").load(filelog,function(response){
                 var filecontent=response;

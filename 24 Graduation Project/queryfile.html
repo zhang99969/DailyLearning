@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>D3js test step page</title>
+    <title>移动应用的测试可视化系统 - A D3JS work with Neo4j</title>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <link rel="stylesheet" href="css/font-awesome.min.css">
@@ -14,7 +14,7 @@
 
 <div class="container-fluid">
     <div class="row" style="height:70px; margin-bottom: 15px"; >
-        <div class="col col-10 col-md-10 form-inline" style="background-color:lavender;"><h1>测试用例数量</h1></div>
+        <div class="col col-10 col-md-10 form-inline" style="background-color:lavender;"><h1>测试报告读取解析</h1></div>
         <div class="col col-1 col-md-1 form-inline" style="background-color:lavender;">
             <a href="query.html"><button type="button" class="btn btn-outline-primary" id="btnHome" style="background-color: white">
                 <i class="fa fa-home" aria-hidden="true"></i>
@@ -30,8 +30,13 @@
 
 <div class="container-fluid">
 
-
+        <textarea id="logs" style="width:1400px;height:850px"  ></textarea>
         <div id="FileCache" style="display:none;" ></div>
+
+
+    <button type="button" class="btn btn-outline-primary btn-sm" id="btnHome2" style="left:30px; width: 180px;display: none" >
+        <i class="fa fa-home " aria-hidden="true"></i> 读取成功，回到首页
+    </button>
 
 </div>
 
@@ -104,7 +109,22 @@
     var clickedElementsList_action=[];
     var clickedElementsList_combinedInfo=[];
 
+    //---------------jumpto系列
+    var JumpTo=[];
+    var JumpTojumpByWithES=[];
+    var JumpToCallTime=[];
+    var JumpToCallNum=[];
+    var JumpTostartNode=[];
+    var JumpToendNode=[];
+
+
+    function putlog(str){
+        var a=document.getElementById("logs").value//获取textarea的Value
+        document.getElementById("logs").value=a+str;//赋值
+    }
+
     function readFileByLines(){//读取yml文件，把所有换行给去掉，代替为&符号。替换所有转义字符
+        putlog("测试报告文件读取中...\n");
         // var nn=filecontent.substring(filecontent.indexOf("---")+3,4)//nn是回车
         //filecontent=filecontent.replace(nn,"&");
         filecontent = filecontent.replace(/[\r\n]/g,"&");//g,表示全部替换 ,[]表示或
@@ -122,7 +142,7 @@
         filecontent=filecontent.replace(/&/g,"\r\n");
     //   console.log(filecontent)//至此，和readFileByLines、readFileByLines2效果一样
 
-
+        putlog("测试报告读取结束\n");
     }
 
     function putsclickedElementsList(){
@@ -147,6 +167,7 @@
     }
     function setclickedElementsList() {
        // console.log(clickedElementsListAll);
+        putlog("解析clickedElementsList...\n");
         var cELAll=clickedElementsListAll;
         var i=0;
         while(cELAll.indexOf("\r\n  action")!=-1)
@@ -155,8 +176,9 @@
             clickedElementsList_url[i]=cELAll.substring(cELAll.indexOf("url: \"")+6,cELAll.indexOf("\"\r\n  tag"));
             clickedElementsList_tag[i]=cELAll.substring(cELAll.indexOf("tag: \"")+6,cELAll.indexOf("\"\r\n  id"));
             clickedElementsList_id[i]=cELAll.substring(cELAll.indexOf("id: \"")+5,cELAll.indexOf("\"\r\n  name"));
-            clickedElementsList_name[i]=cELAll.substring(cELAll.indexOf("name: \"")+7,cELAll.indexOf("\"\r\n  text"));
-            clickedElementsList_text[i]=cELAll.substring(cELAll.indexOf("text: \"")+7,cELAll.indexOf("\"\r\n  instance"));
+            clickedElementsList_name[i]=cELAll.substring(cELAll.indexOf("name: \"")+7,cELAll.indexOf("\"\r\n  text"))
+            clickedElementsList_text[i]=cELAll.substring(cELAll.indexOf("text: \"")+7,cELAll.indexOf("\"\r\n  instance")).replaceAll("（","").replaceAll("）","").replaceAll(" ","").replaceAll("/","");
+            //text中存在空格、（）/等符号，会在setOrdereSMByCombinedInfoFromcEL时对比不出来相同的
             clickedElementsList_instance[i]=cELAll.substring(cELAll.indexOf("instance: \"")+11,cELAll.indexOf("\"\r\n  depth"));
             clickedElementsList_depth[i]=cELAll.substring(cELAll.indexOf("depth: \"")+8,cELAll.indexOf("\"\r\n  valid"));
             clickedElementsList_valid[i]=cELAll.substring(cELAll.indexOf("valid: \"")+8,cELAll.indexOf("\"\r\n  selected"));
@@ -174,6 +196,7 @@
             i++;
         }
         clickedElementsListnum=i;
+        putlog("解析clickedElementsList结束，共"+i+"个\n");
        // console.log(clickedElementsList_url);
     }
     function putelementStoreMap(){
@@ -209,6 +232,7 @@
     }
     function setelementStoreMap(){
       //  console.log(elementStoreMapAll);
+        putlog("解析elementStoreMap中...\n");
         var eSMAll=elementStoreMapAll;
         var i=0;
         while(eSMAll.indexOf("\r\n      action")!=-1)
@@ -257,6 +281,7 @@
         }
     //    putelementStoreMap();
         elementStoreMapnum=i;
+        putlog("解析elementStoreMap结束，共"+i+"个\n");
     }
 
     function setCombinedInfo() {
@@ -290,18 +315,22 @@
             var CombinedInfoCE =clickedElementsList_combinedInfo[i];
             for(var j=0;j<elementStoreMapnum;j++){//遍历ElementStore的map
                 var InfoES =elementStoreMap_ESName[j];
+               // console.log(CombinedInfoCE+"   对比  "+num+"        "+InfoES);
                 if(CombinedInfoCE==InfoES)//两者的Info相同
                 {
                 //    console.log("i="+i+",j="+j);
+                    console.log(CombinedInfoCE+"   相同  "+num+"        "+InfoES);
                     OrdereSM[num]=j;//存编号,OrdereSM[0]=10代表第一个结点为elementStoreMap_ESName[10]结点
                     num++;
-                //   break;//不能写break，只会命中一次
+                   break;//不能写break，只会命中一次
                 }
 
             }
         }
+        putlog("获取遍历顺序成功\n");
        // console.log(num);
     }
+
     function addnode(i) {
         //console.log(elementStoreMap_ESName);已经得到
         //var queryStr =  'CREATE (n1:PageWithES{ name:\''+elementStoreMap_ESName[i]+'\'});';
@@ -316,34 +345,124 @@
         //    var queryStr =  'CREATE (n1:PageWithES{ name:\''+elementStoreMap_shortIndex[i]+'\',ElementStoreName:\''+elementStoreMap_ESName[i]+'\',reqHash:\''+elementStoreMap_reqHash[i]+'\',resHash:\''+elementStoreMap_resHash[i]+'\',reqImg:\''+elementStoreMap_reqImg[i]+'\',resImg:\''+elementStoreMap_resImg[i]+'\',reqTime:\''+elementStoreMap_reqTime[i]+'\',resTime:\''+elementStoreMap_resTime[i]+'\',action:\''+elementStoreMap_action[i]+'\',clickedIndex:\''+elementStoreMap_clickedIndex[i]+'\',Elements_url:\''+elementStoreMap_cEL_url[i]+'\',Elements_tag:\''+elementStoreMap_cEL_tag[i]+'\',Elements_id:\''+elementStoreMap_cEL_id[i]+'\',Elements_name:\''+elementStoreMap_cEL_name[i]+'\',Elements_text:\''+elementStoreMap_cEL_text[i]+'\',Elements_instance:\''+elementStoreMap_cEL_instance[i]+'\',Elements_depth:\''+elementStoreMap_cEL_depth[i]+'\',Elements_valid:\''+elementStoreMap_cEL_valid[i]+'\',Elements_selected:\''+elementStoreMap_cEL_selected[i]+'\',Elements_xpath:\"'+elementStoreMap_cEL_xpath[i]+'\",Elements_ancestor:\''+elementStoreMap_cEL_ancestor[i]+'\',Elements_action:\''+elementStoreMap_cEL_x[i]+'\',Elements_x:\''+elementStoreMap_cEL_y[i]+'\',Elements_y:\''+elementStoreMap_cEL_width[i]+'\',Elements_width:\''+elementStoreMap_cEL_height[i]+'\',Elements_height:\''+elementStoreMap_cEL_action[i]+'\'}   );';
         //以上几个语句后面几项错乱了
         //全
-        var queryStr =  'CREATE (n1:PageWithES{ name:\''+elementStoreMap_shortIndex[i]+'\',ElementStoreName:\''+elementStoreMap_ESName[i]+'\',reqDom:\''+elementStoreMap_reqDom[i]+'\', resDom:\''+elementStoreMap_resDom[i]+'\',reqHash:\''+elementStoreMap_reqHash[i]+'\',resHash:\''+elementStoreMap_resHash[i]+'\',reqImg:\''+elementStoreMap_reqImg[i]+'\',resImg:\''+elementStoreMap_resImg[i]+'\',reqTime:\''+elementStoreMap_reqTime[i]+'\',resTime:\''+elementStoreMap_resTime[i]+'\',action:\''+elementStoreMap_action[i]+'\',clickedIndex:\''+elementStoreMap_clickedIndex[i]+'\',Elements_url:\''+elementStoreMap_cEL_url[i]+'\',Elements_tag:\''+elementStoreMap_cEL_tag[i]+'\',Elements_id:\''+elementStoreMap_cEL_id[i]+'\',Elements_name:\''+elementStoreMap_cEL_name[i]+'\',Elements_text:\''+elementStoreMap_cEL_text[i]+'\',Elements_instance:\''+elementStoreMap_cEL_instance[i]+'\',Elements_depth:\''+elementStoreMap_cEL_depth[i]+'\',Elements_valid:\''+elementStoreMap_cEL_valid[i]+'\',Elements_selected:\''+elementStoreMap_cEL_selected[i]+'\',Elements_xpath:\''+elementStoreMap_cEL_xpath[i]+'\',Elements_ancestor:\''+elementStoreMap_cEL_ancestor[i]+'\',Elements_action:\''+elementStoreMap_cEL_action[i]+'\',Elements_x:\''+elementStoreMap_cEL_x[i]+'\',Elements_y:\''+elementStoreMap_cEL_y[i]+'\',Elements_width:\''+elementStoreMap_cEL_width[i]+'\',Elements_height:\''+elementStoreMap_cEL_height[i]+'\'}   );';
-
+        var PageWithESFrom=localStorage.getItem('PageWithESFrom');//本结构图来自的测试报告
+        var queryStr =  'CREATE (n1:PageWithES{ name:\''+elementStoreMap_shortIndex[i]+'\',PageWithESFrom:\''+PageWithESFrom+'\',ElementStoreName:\''+elementStoreMap_ESName[i]+'\',reqDom:\''+elementStoreMap_reqDom[i]+'\', resDom:\''+elementStoreMap_resDom[i]+'\',reqHash:\''+elementStoreMap_reqHash[i]+'\',resHash:\''+elementStoreMap_resHash[i]+'\',reqImg:\''+elementStoreMap_reqImg[i]+'\',resImg:\''+elementStoreMap_resImg[i]+'\',reqTime:\''+elementStoreMap_reqTime[i]+'\',resTime:\''+elementStoreMap_resTime[i]+'\',action:\''+elementStoreMap_action[i]+'\',clickedIndex:'+elementStoreMap_clickedIndex[i]+',Elements_url:\''+elementStoreMap_cEL_url[i]+'\',Elements_tag:\''+elementStoreMap_cEL_tag[i]+'\',Elements_id:\''+elementStoreMap_cEL_id[i]+'\',Elements_name:\''+elementStoreMap_cEL_name[i]+'\',Elements_text:\''+elementStoreMap_cEL_text[i]+'\',Elements_instance:\''+elementStoreMap_cEL_instance[i]+'\',Elements_depth:\''+elementStoreMap_cEL_depth[i]+'\',Elements_valid:\''+elementStoreMap_cEL_valid[i]+'\',Elements_selected:\''+elementStoreMap_cEL_selected[i]+'\',Elements_xpath:\''+elementStoreMap_cEL_xpath[i]+'\',Elements_ancestor:\''+elementStoreMap_cEL_ancestor[i]+'\',Elements_action:\''+elementStoreMap_cEL_action[i]+'\',Elements_x:'+elementStoreMap_cEL_x[i]+',Elements_y:'+elementStoreMap_cEL_y[i]+',Elements_width:'+elementStoreMap_cEL_width[i]+',Elements_height:'+elementStoreMap_cEL_height[i]+'}   );';
 
         var jqxhr = $.post(neo4jAPIURL, '{"statements":[{"statement":"' + queryStr + '", "includeStats" : true}]}',
             function(data) {
-                console.log(data);
+               // console.log(data);
                 if(data.results[0].stats.labels_added==1)
                 {
-                    console.log("创建成功"+i);
+                    console.log(elementStoreMap_ESName[i]+"    结点创建成功"+i);
+                    putlog("结点"+elementStoreMap_ESName[i]+"创建成功\n");
+                    var textareaheight=document.getElementById("logs").scrollHeight;
+                    document.getElementById("logs").scrollTop=textareaheight;//textarea滚动到最下面
                 }
                 else {
-                    console.log("创建失败"+i);
+                    console.log("结点创建失败"+i);
+                    putlog("结点"+elementStoreMap_ESName[i]+"创建失败\n");
                 }
             }, 'json');
     }
 
     function addNodeWithElementStoreMap(){
+        putlog("准备创建结点\n");
         for(var i=0;i<elementStoreMapnum;i++)
         {
             addnode(i);
         }
 
+        setTimeout(function(){
+            putlog("所有结点创建成功，共"+elementStoreMapnum+"个\n");
+            console.log("开始计算关系");putlog("准备计算结点间的关系\n");
+            var textareaheight=document.getElementById("logs").scrollHeight;
+            document.getElementById("logs").scrollTop=textareaheight;
+
+            addRelationWithElementStoreMap() },1500);//延时等待
 
     }
 
+    function search(startnodename,endnodename){
+        for(var i=0;i<JumpTostartNode.length;i++)
+        {
+            if(JumpTostartNode[i]==startnodename && JumpToendNode[i]==endnodename)
+            {return i;}
+        }
+        return -1;
+    }
+
+    function addRelation(i) {
+     //   console.log(JumpTostartNode);
+        var queryStr2='match(n:PageWithES{ElementStoreName:\''+elementStoreMap_ESName[JumpTostartNode[i]]+'\'}),(m:PageWithES{ElementStoreName:\''+elementStoreMap_ESName[JumpToendNode[i]]+'\'}) create (n)-[r1:JUMPTOWITHES{CallTime:\''+JumpToCallTime[i]+'\',CallNum:\''+JumpToCallNum[i]+'\',JumpByWithES:\''+JumpTojumpByWithES[i]+'\'}]->(m)'
+    //    console.log(queryStr2);
+        var jqxhr2 = $.post(neo4jAPIURL, '{"statements":[{"statement":"' + queryStr2 + '", "includeStats" : true}]}',
+            function(data) {
+          //       console.log(data);
+                if(data.results[0].stats.relationships_created==1)
+                {
+                    console.log(elementStoreMap_ESName[JumpTostartNode[i]]+"→"+elementStoreMap_ESName[JumpToendNode[i]]+"已连接"+i)
+                    putlog("关系"+elementStoreMap_ESName[JumpTostartNode[i]]+"→"+elementStoreMap_ESName[JumpToendNode[i]]+"创建成功\n")
+                    var textareaheight=document.getElementById("logs").scrollHeight;
+                    document.getElementById("logs").scrollTop=textareaheight;
+                }
+                else {
+          //          console.log("关系创建失败"+i);
+                }
+            }, 'json');
+
+    }
+    function addRelationWithElementStoreMap(){
+        var CallNum=1;//访问的顺序
+        var JumptoNum=0;
+        for(var i=0;i<OrdereSM.length-1;i++)
+        {
+            //JumpTojumpByWithES[i]=
+            console.log(elementStoreMap_ESName[OrdereSM[i]]+"  和   "+elementStoreMap_ESName[OrdereSM[i+1]])
+            var index=search(OrdereSM[i],OrdereSM[i+1]);
+            if(index>-1)//关系已经存在
+            {
+                console.log("存在")
+                JumpToCallNum[index]=JumpToCallNum[index]+CallNum.toString()+",";
+                CallNum=CallNum+1;
+                JumpToCallTime[index]=JumpToCallTime[index]+1;
+            }
+            else
+            {
+                console.log("创建")
+                JumpTojumpByWithES[JumptoNum]="跳转到";
+                JumpToCallNum[JumptoNum]=CallNum.toString()+",";
+                CallNum=CallNum+1;
+                JumpToCallTime[JumptoNum]=1;
+                JumpTostartNode[JumptoNum]=OrdereSM[i];
+                JumpToendNode[JumptoNum]=OrdereSM[i+1];
+                JumptoNum=JumptoNum+1;
+
+            }
+        }
+        console.log("开始创建关系");
+        putlog("准备创建关系\n");
+        for(var i=0;i<JumpTojumpByWithES.length;i++)
+        {
+            //console.log("开始关系"+i);
+            addRelation(i);
+        }
+        setTimeout(function(){
+            putlog("所有关系创建成功，共"+JumpTojumpByWithES.length+"个，点击按钮回到首页\n");
+            document.getElementById("btnHome2").style.display="";
+            var textareaheight=document.getElementById("logs").scrollHeight;
+            document.getElementById("logs").scrollTop=textareaheight;
+            },1500);//延时等待
+
+
+    }
+
+
+
     function readYmlfile()
     {
-        var filelog="http://127.0.0.1:8887"+"/IdeaProjects/20201231104305_gov.hgm.hgmeap"+"/"+"elements.yml";
+       // var filelog="http://127.0.0.1:8887"+"/IdeaProjects/20201231104305_gov.hgm.hgmeap"+"/"+"elements.yml";
+        var filelog="http://127.0.0.1:8887"+localStorage.getItem('absopath')+"/"+"elements.yml";
+
         console.log(filelog);
         $("#FileCache").load(filelog,function(response){
             filecontent=response;
@@ -356,20 +475,44 @@
             setOrdereSMByCombinedInfoFromcEL();//设定elementStoreMap，（通过其内的合并信息与clickedElementsList对比），
                                                 // 同getOrderFromClickElmentByCombinedInfoAndgetInfoFromElementStore
             addNodeWithElementStoreMap();
+           // addRelationWithElementStoreMap();//在addNodeWithElementStoreMap内运行
 
         });
 
 
     }
 
+    function backHome(){
+        var url = "query.html";
+        window.location.href = url;
+    }
+
+    function removeOthers(){
+
+        var queryStr3='MATCH (n:PageWithES)-[r:JUMPTOWITHES]-() delete r'
+        $.post(neo4jAPIURL, '{"statements":[{"statement":"' + queryStr3 + '", "includeStats" : true}]}', function(data) {    }, 'json');
+
+        var queryStr4='MATCH (n:PageWithES) delete n'
+        $.post(neo4jAPIURL, '{"statements":[{"statement":"' + queryStr4 + '", "includeStats" : true}]}', function(data) {    }, 'json');
+
+    }
 
     //Page Init
     $(function() {
         var neo4jLogin = 'neo4j';
         var neo4jPassword = 'password';
         setupNeo4jLoginForAjax(neo4jLogin, neo4jPassword);
+        $('#btnHome2').click(            function() {backHome()}            );
 
-        readYmlfile();
+        putlog("连接当前数据库\n");
+        //removeOthers();//搭配PageWithESFrom后不用再删除旧的
+
+
+        setTimeout(function(){
+
+            readYmlfile();
+          },500);//延时等待
+
 
     });
 </script>

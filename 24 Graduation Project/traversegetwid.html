@@ -81,33 +81,15 @@
     var ifgetLog=false;
     var domcontent=[];
 
-    function openAll(){
-        showDomFile()
-        document.getElementById("btnUnfold").style.display="none";
-        document.getElementById("tableInfo").style.display="";
-        document.getElementById("btnFold1").style.display="";
-        document.getElementById("btnFold2").style.display="";
-    }
 
-
-
-    function showDomFile(){//查看DOM文件
-        var filename=sessionStorage.getItem('absopath')+"\\"+nodeIndex+"_"+name+".dom";//正确的dom文件的绝对路径
-        var filenameChrome="http://127.0.0.1:8887"+"/IdeaProjects/20201231104305_gov.hgm.hgmeap"+"/"+nodeIndex+"_"+name+".dom";
-
-        window.open(filenameChrome, null);
-
-    }
 
     function showSuite(){//不该叫showSuite,实际为dom文件读取处理内容
-        /*
-                    var htmlobj=$.ajax({url:"http://127.0.0.1:8887/IdeaProjects/20201231104305_gov.hgm.hgmeap/appcrawler.log",async:false});
-                      var filenameChrome="http://127.0.0.1:8887"+"/IdeaProjects/20201231104305_gov.hgm.hgmeap"+"/"+nodeIndex+"_"+nodeName+".click.png";
-        */
-
 
         if(!ifgetLog){
-            var filelog="http://127.0.0.1:8887"+"/IdeaProjects/20201231104305_gov.hgm.hgmeap"+"/"+nodeIndex+"_"+name+".dom";
+           // var filelog="http://127.0.0.1:8887"+"/IdeaProjects/20201231104305_gov.hgm.hgmeap"+"/"+nodeIndex+"_"+name+".dom";
+            var filelog="http://127.0.0.1:8887"+localStorage.getItem('absopath')+"/"+nodeIndex+"_"+name+".dom";
+
+
             console.log(filelog);
             $("#RecordBoxCache").load(filelog,function(response){
                 var filecontent=response;

@@ -14,7 +14,7 @@
 
     <div class="container-fluid">
         <div class="row" style="height:70px; margin-bottom: 15px"; >
-            <div class="col col-10 col-md-10 form-inline" style="background-color:lavender;"><h1>生成遍历路径</h1></div>
+            <div class="col col-10 col-md-10 form-inline" style="background-color:lavender;"><h1>图结构对比与合并</h1></div>
             <div class="col col-1 col-md-1 form-inline" style="background-color:lavender;">
                 <a href="query.html"><button type="button" class="btn btn-outline-primary" id="btnHome" style="background-color: white">
                     <i class="fa fa-home" aria-hidden="true"></i>
@@ -30,54 +30,48 @@
     <div class="container-fluid">
 
         <div class="row" style="margin-left: 50px;margin-right: 30px" >
-            <h4>选择遍历路径特征</h4>
+            <h4>当前图结构</h4>
+            <h5><div id="graphname1" style="margin-left: 50px;margin-top: 5px;">图结构名</div></h5>
         </div>
-        <div class="row" style="margin-left: 15px"; >
-            <div class="col col-3 col-md-3" style=>
-                <div class="checkbox">
-                    <label>
-                        <input type="checkbox" id="path0" name="path"> 覆盖图结构范围大<br/>
-                    </label>
-                </div>
-                <div class="checkbox">
-                    <label>
-                        <input type="checkbox" id="path1" name="path"> 由起始结点至此最短路径<br/>
-                    </label>
-                </div>
-            </div>
-            <div class="col col-9 col-md-9 form-inline" >
-                <button type="button" class="btn btn-outline-primary btn-sm" id="btnTraverse" style="margin-left:50px;">
-                    <i class="fa fa-road" aria-hidden="true"></i> 生成遍历路径
-                </button>
-                <button type="button" class="btn btn-outline-primary btn-sm" id="btnReselect" style="margin-left:50px;">
-                    <i class="fa fa-refresh" aria-hidden="true"></i> 重新选择特征
-                </button>
-                <button type="button" class="btn btn-outline-primary btn-sm" id="btnShowcase" style="margin-left:50px;">
-                    <i class="fa fa-search" aria-hidden="true"></i> 分析该测试用例
-                </button>
-                <button type="button" class="btn btn-outline-primary btn-sm" id="btnSave" style="margin-left:50px;">
-                    <i class="fa fa-floppy-o" aria-hidden="true"></i> 保存
-                </button>
-            </div>
+        <div class="row" style="margin-left: 50px;margin-right: 30px" >
+            <h4>请选择要对比的图结构</h4>
+            <h5><div id="graphname2" style="margin-left: 50px;margin-top: 5px;"></div></h5>
         </div>
-        <div class="row" style="margin-left: 15px"; >
-            <div class="col col-12 col-md-12" style="padding-right: 145px">
-                <div class="checkbox">
-                    <label> <input type="checkbox" id="path2" name="path" > 自定义</label>
-                    <input type="text" class="form-control form-control-sm" size="40px"  style="padding-left:5px;margin-bottom: 15px" id="querySelf" onfocus="autucheck3()"/><br/>
-                </div>
-            </div>
+        <div class="row" id="othernames" style="margin-left: 50px;margin-right: 30px" >
+
         </div>
 
-        <div class="container-fluid">
-            <div class="row">
+    </div>
+
+
+
+    <div class="col col-9 col-md-9 form-inline" >
+        <button type="button" class="btn btn-outline-primary btn-sm" id="btnShow1" style="margin-left:50px;display: none">
+            <i class="fa fa-window-maximize" aria-hidden="true"></i> 只看当前图结构
+        </button>
+        <button type="button" class="btn btn-outline-primary btn-sm" id="btnShow2" style="margin-left:50px;display: none">
+            <i class="fa fa-window-maximize" aria-hidden="true"></i> 只看要对比的图结构
+        </button>
+        <button type="button" class="btn btn-outline-primary btn-sm" id="btnShowAll" style="margin-left:50px;">
+            <i class="fa fa-window-restore" aria-hidden="true"></i> 图结构对比与合并
+        </button>
+    </div>
+
+
+    <div class="container-fluid">
+        <div class="row">
             <input type="text" class="form-control form-control-sm"  id="queryText" onfocus="this.select()" placeholder="查询内容"  style="display: none" />
             <div class="col col-12 col-md-12" id="graphContainer" style="padding-right: 0px">
-
-                <svg id="resultSvg"></svg>
+                <svg id="resultSvg"></svg>  <svg id="resultSvg2"></svg>
             </div>
+            <input type="text" class="form-control form-control-sm"  id="queryText2" onfocus="this.select()" placeholder="查询内容"  style="display: none" />
+            <div class="col col-12 col-md-12" id="graphContainer2" style="padding-right: 0px">
+
             </div>
         </div>
+    </div>
+
+
     </div>
 
 
@@ -92,29 +86,47 @@
 <script type="text/javascript">
     "use strict";
 
-    function autucheck3()//点击文本框后自动勾选自定义选框
+    function setgraphname2()
     {
-        var checklist=[];
-        var obj=document.getElementsByName("path");
-        for(var i=0;i<obj.length;i++)
+        document.getElementById("graphname2").innerText=this.value;
+        sessionStorage.setItem('ohtername',this.value);
+        window.location.reload();
+    }
+
+    function getOtherGraphName ()
+    {
+        document.getElementById("graphname2").innerText=sessionStorage.getItem('ohtername');
+        document.getElementById("graphname1").innerText=localStorage.getItem('PageWithESFrom');
+        var othernames=localStorage.getItem('PageWithESType').replace(localStorage.getItem('PageWithESFrom'),"").split(",");//排除掉当前后，如["", "20190926163217_com.zol.android", "20201231104305_gov.hgm.hgmeap"]
+
+        for(var i=0;i<othernames.length;i++)
         {
-            if(obj[i].checked)
+            if(othernames[i]!="")
             {
-                checklist[i]=true;
+            var div = document.createElement('div');
+            var o=document.createElement("input");
+            o.type = "button" ;
+            o.value = othernames[i];
+            o.className="btn btn-outline-primary btn-sm";//
+           // var left=53+i*100;
+           // o.style.cssText ="left:"+left+"px;";//隔开
+                o.style.cssText ="margin-left:50px;";
+            o.addEventListener("click",setgraphname2);
+
+            div.appendChild(o);
+                document.getElementById("othernames").appendChild(div);
             }
         }
-        if(checklist[2]!=true)//未勾选
-        {
-            document.getElementById("path2").click();
-        }
+
     }
+
 
     var id;
     var neo4jAPIURL = 'http://localhost:7474/db/data/transaction/commit';
     var TP_nodelist=[];
     var TP_nodelistname=[];
 
-    var graphWidth =(document.documentElement.clientWidth-15)/12*11;// 1024; //default
+    var graphWidth =((document.documentElement.clientWidth-15)/12*11)/2;// 1024; //default
     var graphHeight = 450;
 
 
@@ -128,18 +140,17 @@
     var arrowWidth = 10 ;
 
 
+
     //######################### variable #########################
     var nodeItemMap = {};
     var linkItemMap = {};
-    var clickednode=[];
-    var nodelist=[];
 
     var d3Simulation = null;
     var circles;
     var circleText;
     var lines;
     var lineText;
-    var circlesinResult;
+
 
     var itemColorMap = {};
     var colorScale = d3.scaleOrdinal(d3.schemeSet2);
@@ -208,7 +219,6 @@
         zoomGLayer.append('g').attr('id', 'path-label-group').attr('transform', 'translate(' + centerX + ',' + centerY + ')');
 
         zoom_handler(svg);
-
     }
 
     function stopSimulation() {
@@ -337,7 +347,7 @@
             queryStr = $.trim($('#queryText').val());
             if (queryStr == '') {
                 queryStr=
-                promptAlert($('#graphContainer'), '错误：搜索内容不能为空 ', true);
+                    promptAlert($('#graphContainer'), '错误：搜索内容不能为空 ', true);
                 return;
             }
         }
@@ -393,7 +403,6 @@
         });
     }
 
-
     function getItemColor(d) {
         if (!(d.labels[0] in itemColorMap)) {
             itemColorMap[d.labels[0]] = colorScale(d.labels[0]);
@@ -403,14 +412,14 @@
             return "#62d1fc";
         }
         if (TP_nodelist.length!=0) {
-           for(var i=0;i<TP_nodelist.length;i++)
-          {
+            for(var i=0;i<TP_nodelist.length;i++)
+            {
                 if(d.id==TP_nodelist[i])
                 {
-              //      console.log(d.id+"变色");
+                    //      console.log(d.id+"变色");
                     return "#62d1fc";
                 }
-          }
+            }
         }
         return colorScale(d.labels[0]);
     }
@@ -426,13 +435,310 @@
     function showDefaultGraph()
     {
         //进入页面默认显示完整的图结构
-        $("#queryText").val("MATCH (f1:PageWithES) MATCH path = (f1)-[]->(f:PageWithES) RETURN path;");
+        $("#queryText").val("MATCH (f1:PageWithES{PageWithESFrom:\'"+ localStorage.getItem('PageWithESFrom')+"\'}) MATCH path = (f1)-[]->(f:PageWithES) RETURN path;");
         submitQuery();
     }
 
     function mouserOverall()//鼠标滑过每个结点并划走，实现部分结点显示显色后的效果
     {
         var circlesAll = d3.select('#circle-group').selectAll('circle');
+        // console.log("all")
+        //  console.log(circlesAll);
+        circlesAll.each(function(d, i) {
+            var onClickFunc = d3.select(this).on("mouseover");
+            onClickFunc.apply(this, [d, i]);
+        });//鼠标划过每个结点，否则颜色不会变*/
+        //也可以直接把划过的颜色更改，但真实鼠标滑过之后颜色会恢复
+        circlesAll.each(function(d, i) {
+            var onClickFunc = d3.select(this).on("mouseout");
+            onClickFunc.apply(this, [d, i]);//再把所有鼠标滑过的划走，不然还是亮色
+        });
+
+    }
+
+
+    //######################### variable #########################
+    var nodeItemMap2 = {};
+    var linkItemMap2 = {};
+
+    var d3Simulation2 = null;
+    var circles2;
+    var circleText2;
+    var lines2;
+    var lineText2
+
+
+    var itemColorMap2 = {};
+    var colorScale2 = d3.scaleOrdinal(d3.schemeSet2);
+
+    var drag_handler2 = d3.drag()
+        .on('start', drag_start2)
+        .on('drag', drag_move2)
+        .on('end', drag_end2);
+
+    var zoom_handler2 = d3.zoom()
+        .filter(function() {
+            return (d3.event.type == 'wheel' | d3.event.type == 'mousedown');
+        })
+        .on('zoom', zoom_actions2);
+
+    window.onresize = function(){
+        graphWidth=(document.documentElement.clientWidth-15)/12*11;
+        initGraph();
+    }
+
+    function unfreezeItms2() {
+        var nodeItmArray = d3Simulation2.nodes();
+        if (nodeItmArray != null) {
+            nodeItmArray.forEach(function(nodeItm) {
+                if (nodeItm.fx != null) {
+                    nodeItm.fx = null;
+                    nodeItm.fy = null;
+                }
+            });
+        }
+    }
+
+    function drag_start2(d) {
+        d3Simulation2.alphaTarget(0.3).restart();
+        d.fx = d.x;
+        d.fy = d.y;
+    }
+
+    function drag_move2(d) {
+        d.fx = d3.event.x;
+        d.fy = d3.event.y;
+    }
+
+    function drag_end2(d) {
+        if (!d3.event.active && d3Simulation2 != null)
+            d3Simulation2.alphaTarget(0);
+    }
+
+    function zoom_actions2(){
+        d3.select('#resultSvg2').select('g').attr('transform', d3.event.transform);
+    }
+
+    function initGraph2() {
+        var svg = d3.select('#resultSvg2');
+        var zoomGLayer = svg.append('g');
+
+        var centerX = graphWidth / 2;
+        var centerY = graphHeight / 2;
+
+        svg.attr('width', graphWidth)
+            .attr('height', graphHeight);
+
+        zoomGLayer.append('g').attr('id', 'circle-group2').attr('transform', 'translate(' + centerX + ',' + centerY + ')');
+        zoomGLayer.append('g').attr('id', 'text-group2').attr('transform', 'translate(' + centerX + ',' + centerY + ')');
+        zoomGLayer.append('g').attr('id', 'path-group2').attr('transform', 'translate(' + centerX + ',' + centerY + ')');
+        zoomGLayer.append('g').attr('id', 'path-label-group2').attr('transform', 'translate(' + centerX + ',' + centerY + ')');
+
+        zoom_handler2(svg);
+    }
+
+    function stopSimulation2() {
+        if (d3Simulation2 != null) {
+            d3Simulation2.stop()
+                .on('tick', null);
+            d3Simulation2 = null;
+        }
+    }
+
+    function tick2() {
+        lines2.attr('d', drawLine2);
+        lineText2.attr('transform', transformPathLabel2);
+        circles2.attr('transform', transform2);
+        circleText2.attr('transform', transform2);
+    }
+
+    function transformPathLabel2(d) {
+        var sourceX = d.source.x + ((d.target.x - d.source.x) / 2);
+        var sourceY = d.source.y + ((d.target.y - d.source.y) / 2);
+        return 'translate(' + sourceX + ',' + sourceY + ')';
+    }
+
+    function transform2(d) {
+        return 'translate(' + d.x + ',' + d.y + ')';
+    }
+
+    function drawLine2(d) {
+        var deltaX, deltaY, dist, cosTheta, sinTheta, sourceX, sourceY, targetX, targetY;
+
+        deltaX = d.target.x - d.source.x;
+        deltaY = d.target.y - d.source.y;
+
+        dist = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+        cosTheta = dist==0?0:deltaX / dist;
+        sinTheta = dist==0?0:deltaY / dist;
+        sourceX = d.source.x + (circleSize * cosTheta);
+        sourceY = d.source.y + (circleSize * sinTheta);
+        targetX = d.target.x - (circleSize * cosTheta);
+        targetY = d.target.y - (circleSize * sinTheta);
+
+        var arrowLeftX, arrowLeftY, arrowRightX, arrowRightY;
+
+        arrowLeftX = targetX - (arrowHeight * sinTheta) - (arrowWidth * cosTheta);
+        arrowLeftY = targetY + (arrowHeight * cosTheta) - (arrowWidth * sinTheta);
+        arrowRightX = targetX + (arrowHeight * sinTheta) - (arrowWidth * cosTheta);
+        arrowRightY = targetY - (arrowHeight * cosTheta) - (arrowWidth * sinTheta);
+
+        return 'M' + sourceX + ' ' + sourceY + ' L' + targetX + ' ' + targetY
+            + ' M' + targetX + ' ' + targetY + ' L' + arrowLeftX + ' ' + arrowLeftY
+            + ' L' + arrowRightX + ' ' + arrowRightY + ' Z';
+    }
+
+
+    function updateGraph2() {
+        var d3LinkForce = d3.forceLink()
+            .distance(linkForceSize)
+            .links(mapToArray(linkItemMap2))
+            .id(function(d) {return d.id;});
+
+        d3Simulation2 = d3.forceSimulation()
+            //.force('chargeForce', d3.forceManyBody())//.strength(-300)
+            .force('collideForce', d3.forceCollide(collideForceSize))
+            .nodes(mapToArray(nodeItemMap2))
+            .force('linkForce', d3LinkForce);
+
+        circles2 = d3.select('#circle-group2').selectAll('circle')
+            .data(d3Simulation2.nodes(), function(d) {return d.id;});
+        circleText2 = d3.select('#text-group2').selectAll('text')
+            .data(d3Simulation2.nodes(), function(d) {return d.id;});
+        lines2 = d3.select('#path-group2').selectAll('path')
+            .data(d3LinkForce.links(), function(d) {return d.id;});
+        lineText2 = d3.select('#path-label-group2').selectAll('text')
+            .data(d3LinkForce.links(), function(d) {return d.id;});
+
+        circles2.exit().remove();
+        circles2 = circles2.enter().append('circle')
+            .attr('r', circleSize)
+            .attr('fill', getItemColor2)
+            .attr('stroke', function(d) {return getColorDarker(getItemColor2(d));})
+            .call(drag_handler2)
+            .on('mouseover', function(d) {
+                d3.select(this)
+                    .attr('fill', function(d) {return getColorBrighter(getItemColor2(d));})
+                    .attr('stroke', getItemColor2);
+            })
+            .on('mouseout', function(d) {
+                d3.select(this)
+                    .attr('fill', getItemColor2)
+                    .attr('stroke', function(d) {return getColorDarker(getItemColor2(d));});
+            })
+            .merge(circles2);
+
+        circleText2.exit().remove();
+        circleText2 = circleText2.enter().append('text')
+            .attr('y', textPosOffsetY)
+            .attr('text-anchor', 'middle')
+            .text(function(d) {return d.properties.name;})//结点显示的属性
+            .merge(circleText2);
+
+        lines2.exit().remove();
+        lines2 = lines2.enter().append('path')
+            .merge(lines2);
+
+        lineText2.exit().remove();
+        lineText2 = lineText2.enter().append('text')
+            .attr('y', textPosOffsetY)
+            .attr('text-anchor', 'middle')
+            .text(function(d) {return d.type;})
+            .merge(lineText2);
+
+        d3Simulation2
+            .on('tick', tick2)
+            .on('end', function() {
+                unfreezeItms2();
+            });
+    }
+
+
+    function submitQuery2() {
+
+        var queryStr = $.trim($('#queryText2').val());
+        stopSimulation2();
+
+        var jqxhr = $.post(neo4jAPIURL, '{"statements":[{"statement":"' + queryStr + '", "resultDataContents":["graph"]}]}',
+            function(data) {
+                //console.log(JSON.stringify(data));
+                if (data.errors != null && data.errors.length > 0) {
+                    promptAlert($('#graphContainer2'), '错误: 语法' + data.errors[0].message + '(' + data.errors[0].code + ')', true);
+                    return;
+                }
+
+                if (data.results != null && data.results.length > 0 && data.results[0].data != null && data.results[0].data.length > 0) {
+                    var neo4jDataItmArray = data.results[0].data;
+                    neo4jDataItmArray.forEach(function(dataItem) {
+                        //Node
+                        if (dataItem.graph.nodes != null && dataItem.graph.nodes.length > 0) {
+                            var neo4jNodeItmArray = dataItem.graph.nodes;
+                            neo4jNodeItmArray.forEach(function(nodeItm) {
+                                if (!(nodeItm.id in nodeItemMap2))
+                                    nodeItemMap2[nodeItm.id] = nodeItm;
+
+                            });
+                        }
+                        //Link
+                        if (dataItem.graph.relationships != null && dataItem.graph.relationships.length > 0) {
+                            var neo4jLinkItmArray = dataItem.graph.relationships;
+                            neo4jLinkItmArray.forEach(function(linkItm) {
+                                if (!(linkItm.id in linkItemMap2)) {
+                                    linkItm.source = linkItm.startNode;
+                                    linkItm.target = linkItm.endNode;
+                                    linkItemMap2[linkItm.id] = linkItm;
+
+                                }
+                            });
+                        }
+                    });
+                    updateGraph2();
+                    return;
+                }
+                updateGraph2();
+            }, 'json');
+    }
+
+    function getItemColor2(d) {
+        if (!(d.labels[0] in itemColorMap2)) {
+            itemColorMap2[d.labels[0]] = colorScale2(d.labels[0]);
+        }
+        if(d.id==id)//传入结点默认变色
+        {
+            return "#62d1fc";
+        }
+        if (TP_nodelist.length!=0) {
+           for(var i=0;i<TP_nodelist.length;i++)
+          {
+                if(d.id==TP_nodelist[i])
+                {
+              //      console.log(d.id+"变色");
+                    return "#62d1fc";
+                }
+          }
+        }
+        return colorScale2(d.labels[0]);
+    }
+
+    function getColorBrighter(targetColor) {
+        return d3.rgb(targetColor).brighter(0.3).toString();
+    }
+
+    function getColorDarker(targetColor) {
+        return d3.rgb(targetColor).darker().toString();
+    }
+
+    function showDefaultGraph2()
+    {
+        //进入页面默认显示完整的图结构
+        $("#queryText2").val("MATCH (f1:PageWithES{PageWithESFrom:\'"+ sessionStorage.getItem('ohtername')+"\'}) MATCH path = (f1)-[]->(f:PageWithES) RETURN path;");
+        submitQuery2();
+    }
+
+    function mouserOverall2()//鼠标滑过每个结点并划走，实现部分结点显示显色后的效果
+    {
+        var circlesAll = d3.select('#circle-group2').selectAll('circle');
        // console.log("all")
       //  console.log(circlesAll);
         circlesAll.each(function(d, i) {
@@ -447,52 +753,7 @@
 
     }
 
-    function traverserPathCreate(){
 
-        reSelect();
-        var checklist=[];
-        var obj=document.getElementsByName("path");
-        var success=false;
-        for(var i=0;i<obj.length;i++)
-        {
-            if(obj[i].checked)
-            {
-                checklist[i]=true;
-            }
-        }
-        if(checklist[1]!=true&&checklist[0]!=true&&checklist[2]!=true)//未勾选
-        {
-
-        }
-        else if(id=="")//没有从上一个页面传递过来id信息
-        {
-
-        }
-        else if(checklist[1]==true&&checklist[0]!=true&&checklist[2]!=true)//只勾选第二项
-        {
-
-        }
-        else if(checklist[0]==true&&checklist[1]!=true&&checklist[2]!=true)//只勾选第一项
-        {
-
-        }
-        else if(checklist[2]==true&&checklist[0]!=true&&checklist[1]!=true)//只勾选第三项
-        {
-
-
-        }
-        else if(checklist[2]!=true&&checklist[0]==true&&checklist[1]==true)//同时勾选第一、二项
-        {
-
-
-        }
-        else
-        {
-            promptAlert($('#graphContainer'), '自定义查询条件不能与已有查询条件同时勾选', true);
-        }
-
-
-    }
 
     function reSelect()
     {
@@ -508,80 +769,48 @@
 
     }
 
-    function jumptestcase()
+    function getGraph1()
     {
-      //  localStorage.setItem('nodelist',TP_nodelist.toString());
-        sessionStorage.setItem('nodelist',TP_nodelist.toString());
-        console.log("session=")
-        console.log(sessionStorage.getItem('nodelist'))//
-        var url = "testcase.html";
-        window.open(url);
+        document.getElementById("graphContainer").style.display="";
+        document.getElementById("graphContainer2").style.display="none";
+
     }
 
-    function submitQueryForShorest(nodeID) {
-        var queryStr =  'MATCH p=shortestPath((a:PageWithES{clickedIndex:0})-[*]->(b:PageWithES)) where id(b) =' + nodeID + '  return p;';
-        var jqxhr = $.post(neo4jAPIURL, '{"statements":[{"statement":"' + queryStr + '", "resultDataContents":["row"]}]}',
-            function(data) {
-                console.log("data is");
-                console.log(data);
-                if (data.results != null && data.results.length > 0 && data.results[0].data != null && data.results[0].data.length > 0) {
-                    var neo4jDataItmArray = data.results[0].data;
-                    neo4jDataItmArray.forEach(dataItem => {
-                        var j=0;
-                        // console.log("______");
-                        var neo4jNodeItm=dataItem.meta[0];
-                        //console.log(neo4jNodeItm);
-                        neo4jNodeItm.forEach(function (meta,index) {
-                            //  console.log(meta.id);
-                            if(index%2==0){//不存储关系信息，有余数时跳过
-                                TP_nodelist[j]=meta.id;
-                                console.log("nodelist["+j+"]="+meta.id);
-                                j++;
-                            }
-                        });
-                        var jj=0;
-                        var neo4jNodenameItm=dataItem.row[0];
-                        neo4jNodenameItm.forEach(function (row,index) {//存储结点id对应的名字
-                            if(index%2==0){
-                                TP_nodelistname[jj]=row.name;
-                                console.log("nodenamelist["+jj+"]="+row.name);
-                                jj++;
-                            }
-                        });
-                    });
-                }
-            }, 'json');
+    function getGraph2()
+    {
+        document.getElementById("graphContainer").style.display="none";
+        document.getElementById("graphContainer2").style.display="";
+
     }
+    function getGraph3()
+    {
 
-    function addnode() {
-        var queryStr =  'CREATE (n1:PageWithES{ name:'+'\'西普3\''+'});';
-        var jqxhr = $.post(neo4jAPIURL, '{"statements":[{"statement":"' + queryStr + '", "includeStats" : true}]}',
-            function(data) {
-                //console.log("data is");
-                console.log(data);
-                if(data.results[0].stats.labels_added==1)
-                {
-                    console.log("创建成功");
-                }
-                else {
-                    console.log("创建失败");
-                }
-            }, 'json');
     }
-
-
 
     //Page Init
     $(function() {
 
         var neo4jLogin = 'neo4j';
         var neo4jPassword = 'password';
-
+        getOtherGraphName();
 
         setupNeo4jLoginForAjax(neo4jLogin, neo4jPassword);
-        addnode();
 
+        initGraph();
+        showDefaultGraph();
+        setTimeout(function(){
+        //    mouserOverall()
+        },500);
 
+        initGraph2();
+        showDefaultGraph2();
+        setTimeout(function(){
+        //    mouserOverall2()
+        },500);
+
+        $('#btnShow1').click(            function() {getGraph1()}            );
+        $('#btnShow2').click(            function() {getGraph2()}            );
+        $('#btnShowAll').click(            function() {getGraph3()}            );
 
 
 

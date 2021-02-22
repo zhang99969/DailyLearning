@@ -383,7 +383,8 @@
     function showDefaultGraph()
     {
         //进入页面默认显示完整的图结构
-        $("#queryText").val("MATCH (f1:PageWithES) MATCH path = (f1)-[]->(f:PageWithES) RETURN path;");
+        //$("#queryText").val("MATCH (f1:PageWithES) MATCH path = (f1)-[]->(f:PageWithES) RETURN path;");
+        $("#queryText").val("MATCH (f1:PageWithES{PageWithESFrom:\'"+ localStorage.getItem('PageWithESFrom')+"\'}) MATCH path = (f1)-[]->(f:PageWithES) RETURN path;");
         submitQuery();
     }
 
