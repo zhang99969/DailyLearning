@@ -1004,6 +1004,7 @@
       GlobalConfig(fileflodername);
       //console.log(fileflodername);
 
+
       var PageWithESFrom=localStorage.getItem('PageWithESFrom');
       if(localStorage.getItem('PageWithESType')==null)//系统第一次读取
       {
@@ -1033,7 +1034,7 @@
 
     });
 
-
+   //localStorage.removeItem('PageWithESType');//测试用
     $('#chkboxCypherQry').change(function() {
       if (this.checked)
         $('#queryText').prop('placeholder', 'Cypher');

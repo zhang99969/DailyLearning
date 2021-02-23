@@ -322,7 +322,7 @@
                     console.log(CombinedInfoCE+"   相同  "+num+"        "+InfoES);
                     OrdereSM[num]=j;//存编号,OrdereSM[0]=10代表第一个结点为elementStoreMap_ESName[10]结点
                     num++;
-                   break;//不能写break，只会命中一次
+                   break;//
                 }
 
             }
@@ -393,7 +393,8 @@
 
     function addRelation(i) {
      //   console.log(JumpTostartNode);
-        var queryStr2='match(n:PageWithES{ElementStoreName:\''+elementStoreMap_ESName[JumpTostartNode[i]]+'\'}),(m:PageWithES{ElementStoreName:\''+elementStoreMap_ESName[JumpToendNode[i]]+'\'}) create (n)-[r1:JUMPTOWITHES{CallTime:\''+JumpToCallTime[i]+'\',CallNum:\''+JumpToCallNum[i]+'\',JumpByWithES:\''+JumpTojumpByWithES[i]+'\'}]->(m)'
+        var PageWithESFrom=localStorage.getItem('PageWithESFrom');//本结构图来自的测试报告
+        var queryStr2='match(n:PageWithES{ElementStoreName:\''+elementStoreMap_ESName[JumpTostartNode[i]]+'\',PageWithESFrom:\''+PageWithESFrom+'\'}),(m:PageWithES{ElementStoreName:\''+elementStoreMap_ESName[JumpToendNode[i]]+'\',PageWithESFrom:\''+PageWithESFrom+'\'}) create (n)-[r1:JUMPTOWITHES{CallTime:\''+JumpToCallTime[i]+'\',CallNum:\''+JumpToCallNum[i]+'\',JumpByWithES:\''+JumpTojumpByWithES[i]+'\'}]->(m)'
     //    console.log(queryStr2);
         var jqxhr2 = $.post(neo4jAPIURL, '{"statements":[{"statement":"' + queryStr2 + '", "includeStats" : true}]}',
             function(data) {
@@ -472,7 +473,7 @@
             elementStoreMapAll=filecontent.substring(0,filecontent.indexOf("clickedElementsList:"));//得到elementStoreMap部分
             setelementStoreMap();//保存到[]中，同getYamlelementStoreMapWithClass功能同
             setCombinedInfo();//合并信息，准备对比(//拼接clickedElements中的信息从而与ElementStore的name比较)
-            setOrdereSMByCombinedInfoFromcEL();//设定elementStoreMap，（通过其内的合并信息与clickedElementsList对比），
+            setOrdereSMByCombinedInfoFromcEL();//设定elementStoreMap顺序，（通过其内的合并信息与clickedElementsList对比），
                                                 // 同getOrderFromClickElmentByCombinedInfoAndgetInfoFromElementStore
             addNodeWithElementStoreMap();
            // addRelationWithElementStoreMap();//在addNodeWithElementStoreMap内运行
@@ -508,10 +509,10 @@
         //removeOthers();//搭配PageWithESFrom后不用再删除旧的
 
 
-        setTimeout(function(){
+      //  setTimeout(function(){
 
             readYmlfile();
-          },500);//延时等待
+     //     },500);//延时等待
 
 
     });

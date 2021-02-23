@@ -68,10 +68,16 @@
             <div class="col col-12 col-md-12" id="graphContainer2" style="padding-right: 0px">
 
             </div>
+            <input type="text" class="form-control form-control-sm"  id="queryText3" onfocus="this.select()" placeholder="查询内容"  style="display: none" />
+            <div class="col col-12 col-md-12" id="graphContainer3" style="padding-right: 0px;display: none">
+                <svg id="resultSvg3"></svg>
+            </div>
+
         </div>
     </div>
 
-
+    <div id="FileCache" style="display:none;" ></div>
+    <div id="FileCache2" style="display:none;" ></div>
     </div>
 
 
@@ -127,6 +133,7 @@
     var TP_nodelistname=[];
 
     var graphWidth =((document.documentElement.clientWidth-15)/12*11)/2;// 1024; //default
+    var graphWidth2 =((document.documentElement.clientWidth-15)/12*11)+5;// 1024; //default
     var graphHeight = 450;
 
 
@@ -167,7 +174,7 @@
         .on('zoom', zoom_actions);
 
     window.onresize = function(){
-        graphWidth=(document.documentElement.clientWidth-15)/12*11;
+        graphWidth=((document.documentElement.clientWidth-15)/12*11)/2;
         initGraph();
     }
 
@@ -404,24 +411,9 @@
     }
 
     function getItemColor(d) {
-        if (!(d.labels[0] in itemColorMap)) {
-            itemColorMap[d.labels[0]] = colorScale(d.labels[0]);
-        }
-        if(d.id==id)//传入结点默认变色
-        {
-            return "#62d1fc";
-        }
-        if (TP_nodelist.length!=0) {
-            for(var i=0;i<TP_nodelist.length;i++)
-            {
-                if(d.id==TP_nodelist[i])
-                {
-                    //      console.log(d.id+"变色");
-                    return "#62d1fc";
-                }
-            }
-        }
-        return colorScale(d.labels[0]);
+
+                    return "#92ded9";
+
     }
 
     function getColorBrighter(targetColor) {
@@ -435,7 +427,7 @@
     function showDefaultGraph()
     {
         //进入页面默认显示完整的图结构
-        $("#queryText").val("MATCH (f1:PageWithES{PageWithESFrom:\'"+ localStorage.getItem('PageWithESFrom')+"\'}) MATCH path = (f1)-[]->(f:PageWithES) RETURN path;");
+        $("#queryText").val("MATCH (f1:PageWithES{PageWithESFrom:\'"+ localStorage.getItem('PageWithESFrom')+"\'}) MATCH path = (f1)-[]->(f:PageWithES{PageWithESFrom:\'"+ localStorage.getItem('PageWithESFrom')+"\'}) RETURN path;");
         submitQuery();
     }
 
@@ -483,7 +475,7 @@
         .on('zoom', zoom_actions2);
 
     window.onresize = function(){
-        graphWidth=(document.documentElement.clientWidth-15)/12*11;
+        graphWidth=((document.documentElement.clientWidth-15)/12*11)/2;
         initGraph();
     }
 
@@ -546,47 +538,10 @@
     }
 
     function tick2() {
-        lines2.attr('d', drawLine2);
-        lineText2.attr('transform', transformPathLabel2);
-        circles2.attr('transform', transform2);
-        circleText2.attr('transform', transform2);
-    }
-
-    function transformPathLabel2(d) {
-        var sourceX = d.source.x + ((d.target.x - d.source.x) / 2);
-        var sourceY = d.source.y + ((d.target.y - d.source.y) / 2);
-        return 'translate(' + sourceX + ',' + sourceY + ')';
-    }
-
-    function transform2(d) {
-        return 'translate(' + d.x + ',' + d.y + ')';
-    }
-
-    function drawLine2(d) {
-        var deltaX, deltaY, dist, cosTheta, sinTheta, sourceX, sourceY, targetX, targetY;
-
-        deltaX = d.target.x - d.source.x;
-        deltaY = d.target.y - d.source.y;
-
-        dist = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-
-        cosTheta = dist==0?0:deltaX / dist;
-        sinTheta = dist==0?0:deltaY / dist;
-        sourceX = d.source.x + (circleSize * cosTheta);
-        sourceY = d.source.y + (circleSize * sinTheta);
-        targetX = d.target.x - (circleSize * cosTheta);
-        targetY = d.target.y - (circleSize * sinTheta);
-
-        var arrowLeftX, arrowLeftY, arrowRightX, arrowRightY;
-
-        arrowLeftX = targetX - (arrowHeight * sinTheta) - (arrowWidth * cosTheta);
-        arrowLeftY = targetY + (arrowHeight * cosTheta) - (arrowWidth * sinTheta);
-        arrowRightX = targetX + (arrowHeight * sinTheta) - (arrowWidth * cosTheta);
-        arrowRightY = targetY - (arrowHeight * cosTheta) - (arrowWidth * sinTheta);
-
-        return 'M' + sourceX + ' ' + sourceY + ' L' + targetX + ' ' + targetY
-            + ' M' + targetX + ' ' + targetY + ' L' + arrowLeftX + ' ' + arrowLeftY
-            + ' L' + arrowRightX + ' ' + arrowRightY + ' Z';
+        lines2.attr('d', drawLine);
+        lineText2.attr('transform', transformPathLabel);
+        circles2.attr('transform', transform);
+        circleText2.attr('transform', transform);
     }
 
 
@@ -597,7 +552,6 @@
             .id(function(d) {return d.id;});
 
         d3Simulation2 = d3.forceSimulation()
-            //.force('chargeForce', d3.forceManyBody())//.strength(-300)
             .force('collideForce', d3.forceCollide(collideForceSize))
             .nodes(mapToArray(nodeItemMap2))
             .force('linkForce', d3LinkForce);
@@ -701,24 +655,9 @@
     }
 
     function getItemColor2(d) {
-        if (!(d.labels[0] in itemColorMap2)) {
-            itemColorMap2[d.labels[0]] = colorScale2(d.labels[0]);
-        }
-        if(d.id==id)//传入结点默认变色
-        {
-            return "#62d1fc";
-        }
-        if (TP_nodelist.length!=0) {
-           for(var i=0;i<TP_nodelist.length;i++)
-          {
-                if(d.id==TP_nodelist[i])
-                {
-              //      console.log(d.id+"变色");
-                    return "#62d1fc";
-                }
-          }
-        }
-        return colorScale2(d.labels[0]);
+
+                    return "#dbee98";
+
     }
 
     function getColorBrighter(targetColor) {
@@ -732,15 +671,255 @@
     function showDefaultGraph2()
     {
         //进入页面默认显示完整的图结构
-        $("#queryText2").val("MATCH (f1:PageWithES{PageWithESFrom:\'"+ sessionStorage.getItem('ohtername')+"\'}) MATCH path = (f1)-[]->(f:PageWithES) RETURN path;");
+        $("#queryText2").val("MATCH (f1:PageWithES{PageWithESFrom:\'"+ sessionStorage.getItem('ohtername')+"\'}) MATCH path = (f1)-[]->(f:PageWithES{PageWithESFrom:\'"+ sessionStorage.getItem('ohtername')+"\'}) RETURN path;");
         submitQuery2();
     }
 
-    function mouserOverall2()//鼠标滑过每个结点并划走，实现部分结点显示显色后的效果
+
+
+
+
+    //######################### variable #########################
+    var nodeItemMap3 = {};
+    var linkItemMap3 = {};
+
+    var d3Simulation3 = null;
+    var circles3;
+    var circleText3;
+    var lines3;
+    var lineText3;
+
+
+    var itemColorMap3 = {};
+    var colorScale3 = d3.scaleOrdinal(d3.schemeSet2);
+
+    var drag_handler3 = d3.drag()
+        .on('start', drag_start3)
+        .on('drag', drag_move3)
+        .on('end', drag_end3);
+
+    var zoom_handler3 = d3.zoom()
+        .filter(function() {
+            return (d3.event.type == 'wheel' | d3.event.type == 'mousedown');
+        })
+        .on('zoom', zoom_actions3);
+
+    window.onresize = function(){
+        graphWidth2=(document.documentElement.clientWidth-15)/12*11+5;
+        initGraph();
+    }
+
+    function unfreezeItms3() {
+        var nodeItmArray = d3Simulation3.nodes();
+        if (nodeItmArray != null) {
+            nodeItmArray.forEach(function(nodeItm) {
+                if (nodeItm.fx != null) {
+                    nodeItm.fx = null;
+                    nodeItm.fy = null;
+                }
+            });
+        }
+    }
+
+    function drag_start3(d) {
+        d3Simulation3alphaTarget(0.3).restart();
+        d.fx = d.x;
+        d.fy = d.y;
+    }
+
+    function drag_move3(d) {
+        d.fx = d3.event.x;
+        d.fy = d3.event.y;
+    }
+
+    function drag_end3(d) {
+        if (!d3.event.active && d3Simulation3 != null)
+            d3Simulation3.alphaTarget(0);
+    }
+
+    function zoom_actions3(){
+        d3.select('#resultSvg3').select('g').attr('transform', d3.event.transform);
+    }
+
+    function initGraph3() {
+        var svg = d3.select('#resultSvg3');
+        var zoomGLayer = svg.append('g');
+
+        var centerX = graphWidth2 / 2;
+        var centerY = graphHeight / 2;
+
+        svg.attr('width', graphWidth2)
+            .attr('height', graphHeight);
+
+        zoomGLayer.append('g').attr('id', 'circle-group3').attr('transform', 'translate(' + centerX + ',' + centerY + ')');
+        zoomGLayer.append('g').attr('id', 'text-group3').attr('transform', 'translate(' + centerX + ',' + centerY + ')');
+        zoomGLayer.append('g').attr('id', 'path-group3').attr('transform', 'translate(' + centerX + ',' + centerY + ')');
+        zoomGLayer.append('g').attr('id', 'path-label-group3').attr('transform', 'translate(' + centerX + ',' + centerY + ')');
+
+        zoom_handler3(svg);
+    }
+
+    function stopSimulation3() {
+        if (d3Simulation3 != null) {
+            d3Simulation3.stop()
+                .on('tick', null);
+            d3Simulation3 = null;
+        }
+    }
+
+    function tick3() {
+        lines3.attr('d', drawLine);
+        lineText3.attr('transform', transformPathLabel);
+        circles3.attr('transform', transform);
+        circleText3.attr('transform', transform);
+    }
+
+
+
+    function updateGraph3() {
+        var d3LinkForce = d3.forceLink()
+            .distance(linkForceSize)
+            .links(mapToArray(linkItemMap3))
+            .id(function(d) {return d.id;});
+
+        d3Simulation3 = d3.forceSimulation()
+            //.force('chargeForce', d3.forceManyBody())//.strength(-300)
+            .force('collideForce', d3.forceCollide(collideForceSize))
+            .nodes(mapToArray(nodeItemMap3))
+            .force('linkForce', d3LinkForce);
+
+        circles3 = d3.select('#circle-group3').selectAll('circle')
+            .data(d3Simulation3.nodes(), function(d) {return d.id;});
+        circleText3 = d3.select('#text-group3').selectAll('text')
+            .data(d3Simulation3.nodes(), function(d) {return d.id;});
+        lines3 = d3.select('#path-group3').selectAll('path')
+            .data(d3LinkForce.links(), function(d) {return d.id;});
+        lineText3 = d3.select('#path-label-group3').selectAll('text')
+            .data(d3LinkForce.links(), function(d) {return d.id;});
+
+        circles3.exit().remove();
+        circles3 = circles3.enter().append('circle')
+            .attr('r', circleSize)
+            .attr('fill', getItemColor3)
+            .attr('stroke', function(d) {return getColorDarker(getItemColor3(d));})
+            .call(drag_handler3)
+            .on('mouseover', function(d) {
+                d3.select(this)
+                    .attr('fill', function(d) {return getColorBrighter(getItemColor3(d));})
+                    .attr('stroke', getItemColor3);
+            })
+            .on('mouseout', function(d) {
+                d3.select(this)
+                    .attr('fill', getItemColor3)
+                    .attr('stroke', function(d) {return getColorDarker(getItemColor3(d));});
+            })
+            .merge(circles3);
+
+        circleText3.exit().remove();
+        circleText3 = circleText3.enter().append('text')
+            .attr('y', textPosOffsetY)
+            .attr('text-anchor', 'middle')
+            .text(function(d) {return d.properties.name;})//结点显示的属性
+            .merge(circleText3);
+
+        lines3.exit().remove();
+        lines3 = lines3.enter().append('path')
+            .merge(lines3);
+
+        lineText3.exit().remove();
+        lineText3 = lineText3.enter().append('text')
+            .attr('y', textPosOffsetY)
+            .attr('text-anchor', 'middle')
+            .text(function(d) {return d.type;})
+            .merge(lineText3);
+
+        d3Simulation3
+            .on('tick', tick3)
+            .on('end', function() {
+                unfreezeItms3();
+            });
+    }
+
+
+    function submitQuery3() {
+
+        var queryStr = $.trim($('#queryText3').val());
+        stopSimulation3();
+
+        var jqxhr = $.post(neo4jAPIURL, '{"statements":[{"statement":"' + queryStr + '", "resultDataContents":["graph"]}]}',
+            function(data) {
+                //console.log(JSON.stringify(data));
+                if (data.errors != null && data.errors.length > 0) {
+                    promptAlert($('#graphContainer3'), '错误: 语法' + data.errors[0].message + '(' + data.errors[0].code + ')', true);
+                    return;
+                }
+
+                if (data.results != null && data.results.length > 0 && data.results[0].data != null && data.results[0].data.length > 0) {
+                    var neo4jDataItmArray = data.results[0].data;
+                    neo4jDataItmArray.forEach(function(dataItem) {
+                        //Node
+                        if (dataItem.graph.nodes != null && dataItem.graph.nodes.length > 0) {
+                            var neo4jNodeItmArray = dataItem.graph.nodes;
+                            neo4jNodeItmArray.forEach(function(nodeItm) {
+                                if (!(nodeItm.id in nodeItemMap3))
+                                    nodeItemMap3[nodeItm.id] = nodeItm;
+
+                            });
+                        }
+                        //Link
+                        if (dataItem.graph.relationships != null && dataItem.graph.relationships.length > 0) {
+                            var neo4jLinkItmArray = dataItem.graph.relationships;
+                            neo4jLinkItmArray.forEach(function(linkItm) {
+                                if (!(linkItm.id in linkItemMap3)) {
+                                    linkItm.source = linkItm.startNode;
+                                    linkItm.target = linkItm.endNode;
+                                    linkItemMap3[linkItm.id] = linkItm;
+
+                                }
+                            });
+                        }
+                    });
+                    updateGraph3();
+                    return;
+                }
+                updateGraph3();
+            }, 'json');
+    }
+
+    function getItemColor3(d) {
+        if (!(d.labels[0] in itemColorMap3)) {
+            itemColorMap3[d.labels[0]] = colorScale3(d.labels[0]);
+        }
+        if(d.id==id)//传入结点默认变色
+        {
+            return "#62d1fc";
+        }
+        if (TP_nodelist.length!=0) {
+            for(var i=0;i<TP_nodelist.length;i++)
+            {
+                if(d.id==TP_nodelist[i])
+                {
+                    //      console.log(d.id+"变色");
+                    return "#62d1fc";
+                }
+            }
+        }
+        return colorScale3(d.labels[0]);
+    }
+
+
+    function showDefaultGraph3()
     {
-        var circlesAll = d3.select('#circle-group2').selectAll('circle');
-       // console.log("all")
-      //  console.log(circlesAll);
+        //进入页面默认显示完整的图结构
+        $("#queryText3").val("MATCH (f1:PageWithES{PageWithESFrom:\'"+ PageWithESFromAll+"\'}) MATCH path = (f1)-[]->(f:PageWithES{PageWithESFrom:\'"+ PageWithESFromAll+"\'}) RETURN path;");
+        submitQuery3();
+    }
+
+    function mouserOverall3()//鼠标滑过每个结点并划走，实现部分结点显示显色后的效果
+    {
+        var circlesAll = d3.select('#circle-group3').selectAll('circle');
+        // console.log("all")
+        //  console.log(circlesAll);
         circlesAll.each(function(d, i) {
             var onClickFunc = d3.select(this).on("mouseover");
             onClickFunc.apply(this, [d, i]);
@@ -752,6 +931,10 @@
         });
 
     }
+
+
+
+
 
 
 
@@ -782,10 +965,516 @@
         document.getElementById("graphContainer2").style.display="";
 
     }
+    var PageWithESFrom1;//本部分和上面添加结点的计算过程重复
+    var PageWithESFrom2;
+    var PageWithESFromAll;
+
     function getGraph3()
     {
 
+        PageWithESFrom1=localStorage.getItem('PageWithESFrom');//本结构图来自的测试报告
+        PageWithESFrom2=sessionStorage.getItem('ohtername');
+        if(PageWithESFrom1<PageWithESFrom2)
+        {
+            PageWithESFromAll=PageWithESFrom1.substring(0,PageWithESFrom1.indexOf("_")+1)+PageWithESFrom2;
+        }
+        else
+        {
+            PageWithESFromAll=PageWithESFrom2.substring(0,PageWithESFrom2.indexOf("_")+1)+PageWithESFrom1;
+        }
+        testExist();
+
     }
+
+
+
+    function testExist(){
+
+        var queryStr2 = 'match(n:PageWithES{PageWithESFrom:\''+PageWithESFromAll+'\'}) return count(n)'
+
+        var jqxhr2 = $.post(neo4jAPIURL, '{"statements":[{"statement":"' + queryStr2 + '", "includeStats" : true}]}',
+            function(data) {
+                console.log(data);
+                if(data.results[0].data[0].row>1)//已经对比合并过
+                {
+                    console.log("already")
+                    initGraph3();
+                    showDefaultGraph3();
+                    document.getElementById("graphContainer3").style.display="";
+
+                }
+                else {
+
+                    readYmlfileall();//开始对比合并
+                    setTimeout(function(){
+                        initGraph3();
+                        showDefaultGraph3();
+                        document.getElementById("graphContainer3").style.display="";
+                        },5000      );//延时等待
+
+
+
+
+                }
+
+            }, 'json');
+
+    }
+
+
+
+    var filecontent;
+    var filecontent2;
+    //---------------elementStoreMap系列
+    var elementStoreMapAll;
+    var elementStoreMapAll2;
+    var elementStoreMapnum;
+    var elementStoreMap_ESName=[];
+    var elementStoreMap_shortIndex=[];//为了在D3JS中显示节点名
+    var elementStoreMapnum2;
+    var elementStoreMap_ESName2=[];
+    var elementStoreMap_shortIndex2=[];//为了在D3JS中显示节点名
+
+    var elementStoreMap_ESNameAll=[];
+    var elementStoreMap_shortIndexAll=[];//为了在D3JS中显示节点名
+
+    //---------------clickedElementsList系列
+    var clickedElementsListAll;
+    var clickedElementsListAll2;
+
+    var clickedElementsListnum;
+    var clickedElementsList_url=[];
+    var clickedElementsList_tag=[];
+    var clickedElementsList_id=[];
+    var clickedElementsList_name=[];
+    var clickedElementsList_text=[];
+    var clickedElementsList_depth=[];
+    var clickedElementsList_combinedInfo=[];
+    var clickedElementsListnum2;
+    var clickedElementsList_url2=[];
+    var clickedElementsList_tag2=[];
+    var clickedElementsList_id2=[];
+    var clickedElementsList_name2=[];
+    var clickedElementsList_text2=[];
+    var clickedElementsList_depth2=[];
+    var clickedElementsList_combinedInfo2=[];
+
+    //---------------jumpto系列
+    var JumpTo=[];
+    var JumpTojumpByWithES=[];
+    var JumpTostartNode=[];
+    var JumpToendNode=[];
+
+
+    function readFileByLines(){//读取yml文件，把所有换行给去掉，代替为&符号。替换所有转义字符
+
+        filecontent = filecontent.replace(/[\r\n]/g,"&");//g,表示全部替换 ,[]表示或
+        filecontent=filecontent.replace(/\\&        /g,"");  //readFileByLines2中没有该项，导致elementStoreMap中xpath部分and前空格过多
+        filecontent=filecontent.replace(/\\&       /g,"");  //readFileByLines2中没有该项，导致elementStoreMap中xpath部分and前空格过多
+        filecontent=filecontent.replace(/\\&      /g,"");
+        filecontent=filecontent.replace(/\\&     /g,"");
+        filecontent=filecontent.replace(/\\&    /g,"");  //readFileByLines2中没有该项，导致clickedElementsList中出现换行
+        filecontent=filecontent.replace(/\\\"/g,"\"");// [\"]->["] [\r\n]->[回车] [\      ]->[]
+        filecontent=filecontent.replace(/\\r\\n/g,"\r\n");
+        filecontent=filecontent.replace(/\\ /g," ");
+        filecontent=filecontent.replace(/&/g,"\r\n");
+
+    }
+
+    function readFileByLines2(){//读取yml文件，把所有换行给去掉，代替为&符号。替换所有转义字符
+
+        filecontent2 = filecontent2.replace(/[\r\n]/g,"&");//g,表示全部替换 ,[]表示或
+        filecontent2=filecontent2.replace(/\\&        /g,"");  //readFileByLines2中没有该项，导致elementStoreMap中xpath部分and前空格过多
+        filecontent2=filecontent2.replace(/\\&       /g,"");  //readFileByLines2中没有该项，导致elementStoreMap中xpath部分and前空格过多
+        filecontent2=filecontent2.replace(/\\&      /g,"");
+        filecontent2=filecontent2.replace(/\\&     /g,"");
+        filecontent2=filecontent2.replace(/\\&    /g,"");  //readFileByLines2中没有该项，导致clickedElementsList中出现换行
+        filecontent2=filecontent2.replace(/\\\"/g,"\"");// [\"]->["] [\r\n]->[回车] [\      ]->[]
+        filecontent2=filecontent2.replace(/\\r\\n/g,"\r\n");
+        filecontent2=filecontent2.replace(/\\ /g," ");
+        filecontent2=filecontent2.replace(/&/g,"\r\n");
+
+    }
+
+
+    function setclickedElementsList() {
+        // console.log(clickedElementsListAll);
+        var cELAll=clickedElementsListAll;
+        var i=0;
+        while(cELAll.indexOf("\r\n  action")!=-1)
+        {
+
+            clickedElementsList_url[i]=cELAll.substring(cELAll.indexOf("url: \"")+6,cELAll.indexOf("\"\r\n  tag"));
+            clickedElementsList_tag[i]=cELAll.substring(cELAll.indexOf("tag: \"")+6,cELAll.indexOf("\"\r\n  id"));
+            clickedElementsList_id[i]=cELAll.substring(cELAll.indexOf("id: \"")+5,cELAll.indexOf("\"\r\n  name"));
+            clickedElementsList_name[i]=cELAll.substring(cELAll.indexOf("name: \"")+7,cELAll.indexOf("\"\r\n  text"))
+            clickedElementsList_text[i]=cELAll.substring(cELAll.indexOf("text: \"")+7,cELAll.indexOf("\"\r\n  instance")).replaceAll("（","").replaceAll("）","").replaceAll(" ","").replaceAll("/","");
+            clickedElementsList_depth[i]=cELAll.substring(cELAll.indexOf("depth: \"")+8,cELAll.indexOf("\"\r\n  valid"));
+
+            cELAll=cELAll.substring(cELAll.indexOf("\r\n  action"));//先把最开始的url字符截掉，方便后续截取
+            cELAll=cELAll.substring(cELAll.indexOf("\"\r\n- url:")+3);
+            //console.log(cELAll);
+            i++;
+        }
+        clickedElementsListnum=i;
+        // console.log(clickedElementsList_url);
+    }
+
+    function setclickedElementsList2() {
+        var cELAll=clickedElementsListAll2;
+        var i=0;
+        while(cELAll.indexOf("\r\n  action")!=-1)
+        {
+
+            clickedElementsList_url2[i]=cELAll.substring(cELAll.indexOf("url: \"")+6,cELAll.indexOf("\"\r\n  tag"));
+            clickedElementsList_tag2[i]=cELAll.substring(cELAll.indexOf("tag: \"")+6,cELAll.indexOf("\"\r\n  id"));
+            clickedElementsList_id2[i]=cELAll.substring(cELAll.indexOf("id: \"")+5,cELAll.indexOf("\"\r\n  name"));
+            clickedElementsList_name2[i]=cELAll.substring(cELAll.indexOf("name: \"")+7,cELAll.indexOf("\"\r\n  text"))
+            clickedElementsList_text2[i]=cELAll.substring(cELAll.indexOf("text: \"")+7,cELAll.indexOf("\"\r\n  instance")).replaceAll("（","").replaceAll("）","").replaceAll(" ","").replaceAll("/","");
+            clickedElementsList_depth2[i]=cELAll.substring(cELAll.indexOf("depth: \"")+8,cELAll.indexOf("\"\r\n  valid"));
+
+            cELAll=cELAll.substring(cELAll.indexOf("\r\n  action"));//先把最开始的url字符截掉，方便后续截取
+            cELAll=cELAll.substring(cELAll.indexOf("\"\r\n- url:")+3);
+            //console.log(cELAll);
+            i++;
+        }
+        clickedElementsListnum2=i;
+        // console.log(clickedElementsList_url);
+    }
+
+    function setelementStoreMap(){
+        var eSMAll=elementStoreMapAll;
+        var i=0;
+        while(eSMAll.indexOf("\r\n      action")!=-1)
+        {
+            elementStoreMap_ESName[i]=eSMAll.substring(eSMAll.indexOf("  ")+2,eSMAll.indexOf("\r\n    reqDom:")-1);
+            eSMAll=eSMAll.substring(eSMAll.indexOf("\r\n      action:"));//把action字符前面截掉，使_cEL_action的eSMAll.indexOf("\"\r\n  ")有值
+            eSMAll=eSMAll.substring(eSMAll.indexOf("action: \"")+9);//把action字符截掉(,该行还剩着"click")，开始下一次循环
+            var shortIndex=elementStoreMap_ESName[i].lastIndexOf("_")>elementStoreMap_ESName[i].lastIndexOf("=")?elementStoreMap_ESName[i].lastIndexOf("_"):elementStoreMap_ESName[i].lastIndexOf("=");
+            elementStoreMap_shortIndex[i]=elementStoreMap_ESName[i].substring(shortIndex+1);
+            i++;
+        }
+        elementStoreMapnum=i;
+    }
+
+    function setelementStoreMap2(){
+        var eSMAll=elementStoreMapAll2;
+        var i=0;
+        while(eSMAll.indexOf("\r\n      action")!=-1)
+        {
+            elementStoreMap_ESName2[i]=eSMAll.substring(eSMAll.indexOf("  ")+2,eSMAll.indexOf("\r\n    reqDom:")-1);
+            eSMAll=eSMAll.substring(eSMAll.indexOf("\r\n      action:"));//把action字符前面截掉，使_cEL_action的eSMAll.indexOf("\"\r\n  ")有值
+            eSMAll=eSMAll.substring(eSMAll.indexOf("action: \"")+9);//把action字符截掉(,该行还剩着"click")，开始下一次循环
+            var shortIndex=elementStoreMap_ESName2[i].lastIndexOf("_")>elementStoreMap_ESName2[i].lastIndexOf("=")?elementStoreMap_ESName2[i].lastIndexOf("_"):elementStoreMap_ESName2[i].lastIndexOf("=");
+            elementStoreMap_shortIndex2[i]=elementStoreMap_ESName2[i].substring(shortIndex+1);
+            i++;
+        }
+        elementStoreMapnum2=i;
+    }
+
+    function setCombinedInfo() {
+        var regEx="[\n`~!@#$%^&*()+=|{}':;',\\[\\].<>/?~！@#￥%……&*（）——+|{}（【】‘；：”“’。， 、？]";
+        for(var i=0;i<clickedElementsListnum;i++)
+        {
+            var tag2=clickedElementsList_tag[i].replace("android.widget.","");
+            var id2=clickedElementsList_id[i].substring(clickedElementsList_id[i].lastIndexOf("/")+1);
+            var text2=clickedElementsList_text[i].replaceAll(regEx,"");
+            var combined= clickedElementsList_url[i]+".tag="+tag2+".depth="+clickedElementsList_depth[i];
+            if(!clickedElementsList_id[i]=="")
+                combined=combined+".id="+id2;
+            if(!clickedElementsList_text[i]=="")
+                combined=combined+".text="+text2;
+            if(!clickedElementsList_name[i]=="")
+                combined=combined+".name="+clickedElementsList_name[i];
+            clickedElementsList_combinedInfo[i]=combined;
+        }
+    }
+    function setCombinedInfo2() {
+        var regEx="[\n`~!@#$%^&*()+=|{}':;',\\[\\].<>/?~！@#￥%……&*（）——+|{}（【】‘；：”“’。， 、？]";
+        for(var i=0;i<clickedElementsListnum2;i++)
+        {
+            var tag2=clickedElementsList_tag2[i].replace("android.widget.","");
+            var id2=clickedElementsList_id2[i].substring(clickedElementsList_id2[i].lastIndexOf("/")+1);
+            var text2=clickedElementsList_text2[i].replaceAll(regEx,"");
+            var combined= clickedElementsList_url2[i]+".tag="+tag2+".depth="+clickedElementsList_depth2[i];
+            if(!clickedElementsList_id2[i]=="")
+                combined=combined+".id="+id2;
+            if(!clickedElementsList_text2[i]=="")
+                combined=combined+".text="+text2;
+            if(!clickedElementsList_name2[i]=="")
+                combined=combined+".name="+clickedElementsList_name2[i];
+            clickedElementsList_combinedInfo2[i]=combined;
+        }
+    }
+
+    var OrdereSM=[];//OrdereSM[0]=10代表(按遍历顺序)第一个结点为elementStoreMap_ESName[10]结点
+    function setOrdereSMByCombinedInfoFromcEL()
+    {
+        var num=0;
+        for(var i=0;i<clickedElementsListnum;i++){//遍历ClickElment的map
+            var CombinedInfoCE =clickedElementsList_combinedInfo[i];
+            for(var j=0;j<elementStoreMapnum;j++){//遍历ElementStore的map
+                var InfoES =elementStoreMap_ESName[j];
+                if(CombinedInfoCE==InfoES)//两者的Info相同
+                {
+                    OrdereSM[num]=j;//存编号,OrdereSM[0]=10代表第一个结点为elementStoreMap_ESName[10]结点
+                    num++;
+                    break;
+                }
+            }
+        }
+    }
+
+    var OrdereSM2=[];
+    function setOrdereSMByCombinedInfoFromcEL2()
+    {
+        var num=0;
+        for(var i=0;i<clickedElementsListnum2;i++){//遍历ClickElment的map
+            var CombinedInfoCE =clickedElementsList_combinedInfo2[i];
+            for(var j=0;j<elementStoreMapnum2;j++){//遍历ElementStore的map
+                var InfoES =elementStoreMap_ESName2[j];
+                if(CombinedInfoCE==InfoES)//两者的Info相同
+                {
+                    OrdereSM2[num]=j;
+                    num++;
+                    break;//
+                }
+            }
+        }
+    }
+
+    var OrdereSMAll=[];
+    var jj=[];
+    var kk=[];
+    var jknum=0;
+    function combine2elementStoreMap()
+    {
+
+        for(var or1=0;or1<OrdereSM.length;or1++)
+        {
+            OrdereSMAll[or1]=OrdereSM[or1];
+        }
+        var oro=0;
+        for(var or2=OrdereSM.length;or2<OrdereSM.length+OrdereSM2.length;or2++)
+        {
+            OrdereSMAll[or2]=OrdereSM2[oro]+elementStoreMapnum;
+            oro++;
+        }
+
+
+        console.log("合并start");
+        for(var i=0;i<elementStoreMapnum;i++)
+        {
+            elementStoreMap_ESNameAll[i]=elementStoreMap_ESName[i];
+            elementStoreMap_shortIndexAll[i]=elementStoreMap_shortIndex[i];
+        }
+        for(var j=0;j<elementStoreMapnum2;j++)
+        {
+            for(var k=0;k<elementStoreMap_ESNameAll.length;k++)
+            {
+                if( elementStoreMap_ESName2[j]==elementStoreMap_ESNameAll[k])
+                {
+                    console.log("2de"+j+"=1de"+k);
+                    jj[jknum]=j;
+                    kk[jknum]=k;
+                    jknum=jknum+1;
+                }
+            }
+        }
+        for(var or3=OrdereSM.length;or3<OrdereSM.length+OrdereSM2.length;or3++)
+        {
+            for(var or4=0;or4<jknum;or4++)
+            {
+                if(OrdereSMAll[or3]==jj[or4]+elementStoreMapnum)
+                {
+                    OrdereSMAll[or3]=kk[or4];
+                }
+            }
+        }
+
+        console.log("合并end");
+    }
+
+    var nnn=0
+    function addnode(i) {
+
+
+        if(i<elementStoreMapnum) {
+            var queryStr = 'CREATE (n1:PageWithES{ name:\'' + elementStoreMap_shortIndex[i] + '\',PageWithESFrom:\'' + PageWithESFromAll + '\',ElementStoreName:\'' + elementStoreMap_ESName[i] + '\'}   );';
+        }
+        else {
+            var queryStr = 'CREATE (n1:PageWithES{ name:\'' + elementStoreMap_shortIndex2[i-elementStoreMapnum] + '\',PageWithESFrom:\'' + PageWithESFromAll + '\',ElementStoreName:\'' + elementStoreMap_ESName2[i-elementStoreMapnum] + '\'}   );';
+
+        }
+
+        var jqxhr = $.post(neo4jAPIURL, '{"statements":[{"statement":"' + queryStr + '", "includeStats" : true}]}',
+            function(data) {
+                // console.log(data);
+                if(data.results[0].stats.labels_added==1)
+                {
+                    if(i<elementStoreMapnum)
+                    {console.log(elementStoreMap_ESName[i]+"    结点创建成功"+i);}
+                    else{console.log(elementStoreMap_ESName2[i-elementStoreMapnum]+"    结点创建成功"+i);}
+                    nnn=nnn+1;
+                }
+                else {
+                    console.log("结点创建失败"+i);
+
+                }
+            }, 'json');
+
+    }
+
+    function addNodeWithElementStoreMap(){
+
+        for(var i=0;i<elementStoreMapnum+elementStoreMapnum2;i++)
+        {
+            var jump=0;
+            for(var or4=0;or4<jknum;or4++)
+            {
+                if(i==elementStoreMapnum+jj[or4])
+                {//重复结点不创建
+                    jump=1;
+                }
+
+            }
+            if(jump==0)
+            {addnode(i);
+            }
+
+        }
+
+       setTimeout(function(){
+            console.log(nnn+"个");
+            addRelationWithElementStoreMap()    },1500      );//延时等待
+
+    }
+
+    function search(startnodename,endnodename){
+        for(var i=0;i<JumpTostartNode.length;i++)
+        {
+            if(JumpTostartNode[i]==startnodename && JumpToendNode[i]==endnodename)
+            {return i;}
+        }
+        return -1;
+    }
+
+    function addRelation(i) {
+        //   console.log(JumpTostartNode);
+        var esname1;
+        var esname2;
+        if(JumpTostartNode[i]<elementStoreMapnum) {
+            esname1=elementStoreMap_ESName[JumpTostartNode[i]];
+        }
+        else {
+            esname1=elementStoreMap_ESName2[JumpTostartNode[i]-elementStoreMapnum];
+        }
+        if(JumpToendNode[i]<elementStoreMapnum) {
+            esname2=elementStoreMap_ESName[JumpToendNode[i]];
+        }
+        else {
+            esname2=elementStoreMap_ESName2[JumpToendNode[i]-elementStoreMapnum];
+        }
+
+
+
+        var queryStr2 = 'match(n:PageWithES{ElementStoreName:\'' + esname1 + '\',PageWithESFrom:\'' + PageWithESFromAll + '\'}),(m:PageWithES{ElementStoreName:\'' + esname2 + '\',PageWithESFrom:\'' + PageWithESFromAll + '\'}) create (n)-[r1:JUMPTOWITHES{JumpByWithES:\'' + JumpTojumpByWithES[i] + '\'}]->(m)'
+
+        var jqxhr2 = $.post(neo4jAPIURL, '{"statements":[{"statement":"' + queryStr2 + '", "includeStats" : true}]}',
+            function(data) {
+                console.log(data);
+                if(data.results[0].stats.relationships_created==1)
+                {
+                    console.log(esname1+"→"+esname2+"已连接"+i)
+
+                }
+                else {
+                    console.log(esname1+"→"+esname2+"失败"+i)
+                }
+            }, 'json');
+
+    }
+    var mmm=0;
+    function addRelationWithElementStoreMap(){
+
+        var JumptoNum=0;
+        for(var i=0;i<OrdereSMAll.length-1;i++)
+        {
+            //JumpTojumpByWithES[i]=
+          //  console.log(elementStoreMap_ESName[OrdereSMAll[i]]+"  和   "+elementStoreMap_ESName[OrdereSMAll[i+1]])
+            var index=search(OrdereSMAll[i],OrdereSMAll[i+1]);
+            if(index>-1)//关系已经存在
+            {
+                console.log("存在")
+            }
+            else
+            {
+                console.log("创建")
+                JumpTojumpByWithES[JumptoNum]="跳转到";
+                JumpTostartNode[JumptoNum]=OrdereSMAll[i];
+                JumpToendNode[JumptoNum]=OrdereSMAll[i+1];
+                JumptoNum=JumptoNum+1;
+                mmm=mmm+1;
+
+            }
+        }
+        console.log("开始创建关系");
+        for(var i=0;i<JumpTojumpByWithES.length;i++)
+        {
+            console.log("开始关系"+i);
+            addRelation(i);
+        }
+        console.log(mmm);
+
+
+    }
+
+
+    function readYmlfileall()
+    {
+        console.log("go")
+        var filelog1="http://127.0.0.1:8887"+localStorage.getItem('absopath')+"/"+"elements.yml";
+        $("#FileCache").load(filelog1,function(response){
+            console.log("1start")
+            filecontent=response;
+            readFileByLines();
+            clickedElementsListAll=filecontent.substring(filecontent.indexOf("clickedElementsList:"));//得到clickedElementsList部分
+            setclickedElementsList();//保存到[]中，同getYamlclickedElementsListWithClass功能同
+            elementStoreMapAll=filecontent.substring(0,filecontent.indexOf("clickedElementsList:"));//得到elementStoreMap部分
+            setelementStoreMap();//保存到[]中，同getYamlelementStoreMapWithClass功能同
+            setCombinedInfo();
+            setOrdereSMByCombinedInfoFromcEL();
+            console.log("1end")
+        });
+
+        var filelog2="http://127.0.0.1:8887"+localStorage.getItem('absopath').substring(0,localStorage.getItem('absopath').lastIndexOf("\\")+1)+sessionStorage.getItem('ohtername')+"/"+"elements.yml";
+        $("#FileCache2").load(filelog2,function(response){
+            console.log("2start")
+            filecontent2=response;
+            readFileByLines2();
+            clickedElementsListAll2=filecontent2.substring(filecontent2.indexOf("clickedElementsList:"));//得到clickedElementsList部分
+            setclickedElementsList2();//保存到[]中，同getYamlclickedElementsListWithClass功能同
+            elementStoreMapAll2=filecontent2.substring(0,filecontent2.indexOf("clickedElementsList:"));//得到elementStoreMap部分
+            setelementStoreMap2();//保存到[]中，同getYamlelementStoreMapWithClass功能同
+            setCombinedInfo2();
+            setOrdereSMByCombinedInfoFromcEL2();
+            console.log("2end")
+        });
+
+//3.5s
+
+        setTimeout(function(){
+            combine2elementStoreMap();
+            addNodeWithElementStoreMap()
+            },3500);//延时等待
+        //
+
+
+
+
+
+    }
+
 
     //Page Init
     $(function() {
@@ -798,15 +1487,9 @@
 
         initGraph();
         showDefaultGraph();
-        setTimeout(function(){
-        //    mouserOverall()
-        },500);
-
         initGraph2();
         showDefaultGraph2();
-        setTimeout(function(){
-        //    mouserOverall2()
-        },500);
+
 
         $('#btnShow1').click(            function() {getGraph1()}            );
         $('#btnShow2').click(            function() {getGraph2()}            );
